@@ -1,7 +1,7 @@
 {
   "name": "ddd",
-  "displayName": "ddd",
-  "description": "Better UI for debug and run",
+  "displayName": "Debug Configurations",
+  "description": "A PyCharm-inspired debug and run configuration manager for VS Code",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.105.0"
@@ -15,9 +15,128 @@
     "commands": [
       {
         "command": "ddd.helloWorld",
-        "title": "Hello World"
+        "title": "ddd: Hello World"
+      },
+      {
+        "command": "ddd.debugConfig.refresh",
+        "title": "ddd: Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ddd.debugConfig.add",
+        "title": "ddd: Add Configuration",
+        "icon": "$(add)"
+      },
+      {
+        "command": "ddd.debugConfig.edit",
+        "title": "ddd: Edit Configuration",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "ddd.debugConfig.delete",
+        "title": "ddd: Delete Configuration",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "ddd.debugConfig.duplicate",
+        "title": "ddd: Duplicate Configuration",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "ddd.debugConfig.run",
+        "title": "ddd: Run Configuration",
+        "icon": "$(play)"
+      },
+      {
+        "command": "ddd.debugConfig.debug",
+        "title": "ddd: Debug Configuration",
+        "icon": "$(debug)"
+      },
+      {
+        "command": "ddd.debugConfig.createFromFile",
+        "title": "ddd: Quick Configuration from Active File",
+        "icon": "$(lightbulb)"
+      },
+      {
+        "command": "ddd.debugConfig.openSettings",
+        "title": "ddd: Configuration Settings",
+        "icon": "$(gear)"
       }
-    ]
+    ],
+    "views": {
+      "debug": [
+        {
+          "id": "ddd.debugConfigurations",
+          "name": "ddd Configurations"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "ddd.debugConfig.add",
+          "when": "view == ddd.debugConfigurations",
+          "group": "navigation"
+        },
+        {
+          "command": "ddd.debugConfig.createFromFile",
+          "when": "view == ddd.debugConfigurations",
+          "group": "navigation"
+        },
+        {
+          "command": "ddd.debugConfig.refresh",
+          "when": "view == ddd.debugConfigurations",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "ddd.debugConfig.run",
+          "when": "view == ddd.debugConfigurations && viewItem == configuration",
+          "group": "inline@1"
+        },
+        {
+          "command": "ddd.debugConfig.debug",
+          "when": "view == ddd.debugConfigurations && viewItem == configuration",
+          "group": "inline@2"
+        },
+        {
+          "command": "ddd.debugConfig.openSettings",
+          "when": "view == ddd.debugConfigurations && viewItem == configuration",
+          "group": "inline@3"
+        },
+        {
+          "command": "ddd.debugConfig.edit",
+          "when": "view == ddd.debugConfigurations && viewItem == configuration",
+          "group": "1_modification"
+        },
+        {
+          "command": "ddd.debugConfig.duplicate",
+          "when": "view == ddd.debugConfigurations && viewItem == configuration",
+          "group": "1_modification"
+        },
+        {
+          "command": "ddd.debugConfig.delete",
+          "when": "view == ddd.debugConfigurations && viewItem == configuration",
+          "group": "1_modification"
+        }
+      ]
+    }
+  },
+  "configuration": {
+    "title": "Debug Configurations",
+    "properties": {
+      "ddd.clickBehavior": {
+        "type": "string",
+        "enum": ["openSettings", "none"],
+        "default": "openSettings",
+        "description": "Behavior when clicking on configuration items in the tree view",
+        "enumDescriptions": [
+          "Open configuration settings when clicking an item",
+          "No action when clicking an item (use toolbar buttons instead)"
+        ]
+      }
+    }
   },
   "scripts": {
     "test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/index.js",

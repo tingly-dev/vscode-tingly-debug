@@ -1,65 +1,113 @@
-# ddd README
+# Debug Configurations
 
-This is the README for your extension "ddd". After writing up a brief description, we recommend including the following sections.
+A PyCharm-inspired debug and run configuration manager for VS Code that provides a better UI for managing your debug configurations with launch.json synchronization.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- **🎯 Configuration View**: Clean, organized tree view of all debug configurations and compounds
+- **🔄 Launch.json Sync**: Automatically synchronizes with your `.vscode/launch.json` file
+- **💡 Quick Configuration**: Create configurations instantly from active files with smart type detection
+- **➕ Guided Setup**: Add new debug configurations with step-by-step configuration
+- **⚙️ Visual Editor**: Comprehensive configuration editor with form-based editing and JSON preview
+- **✏️ In-place Editing**: Edit configuration names and properties directly
+- **🗑️ Safe Deletion**: Remove configurations with confirmation prompts
+- **📋 Duplicate Configurations**: Quickly copy existing configurations
+- **▶️ Quick Launch**: Run configurations with or without debugging
+- **🔄 Auto-refresh**: Automatically updates when launch.json changes
 
-For example if there is an image subfolder under your extension project workspace:
+## Usage
 
-\!\[feature X\]\(images/feature-x.png\)
+### Accessing the Configuration View
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+1. Open the Debug view (Ctrl+Shift+D or Cmd+Shift+D)
+2. Look for the "Configurations" panel in the Debug sidebar
+3. All your debug configurations will appear in an organized list
+
+### Adding a New Configuration
+
+**Quick Configuration**:
+1. Open the file you want to debug
+2. Click the lightbulb (💡) button in the Configurations panel
+3. A configuration will be automatically created based on the file type
+
+**Manual Configuration**:
+1. Click the "Add Configuration" (+) button in the Configurations panel
+2. Enter a configuration name
+3. Select the configuration type (Node.js, Python, Chrome, etc.)
+4. Choose the request type (launch or attach)
+5. The configuration will be automatically added to your launch.json
+
+### Managing Configurations
+
+- **Run**: Click the play (▶️) icon to run without debugging
+- **Debug**: Click the debug (🐛) icon to start debugging
+- **Settings**: Click the gear (⚙️) icon to open the configuration editor
+- **Edit**: Right-click and select "Edit" to modify the configuration name
+- **Duplicate**: Right-click and select "Duplicate" to copy a configuration
+- **Delete**: Right-click and select "Delete" to remove a configuration
+
+### Configuration Editor
+
+Click the gear (⚙️) icon on any configuration to open a comprehensive editor with:
+
+- **Visual Property Editing**: Edit all launch.json fields through a form interface
+- **Dynamic Field Management**: Add or remove configuration properties
+- **Real-time JSON Preview**: See the resulting JSON as you type
+- **Smart Value Parsing**: Automatically detects JSON vs string values
+
+### Configuration Types Supported
+
+- Node.js
+- Python
+- Chrome
+- Edge
+- Firefox
+- Extension Host (for VS Code extensions)
+- CoreCLR (.NET)
+- Custom types
+
+## Compatibility
+
+This extension works with standard VS Code launch.json format and supports:
+
+- Debug configurations
+- Compound configurations
+- All standard VS Code debug attributes
+- Workspace-specific launch.json files
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- VS Code 1.105.0 or higher
+- Web extension compatible
 
-## Extension Settings
+## Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+This extension provides the following configuration options:
 
-For example:
+### Click Behavior
 
-This extension contributes the following settings:
+**`ddd.clickBehavior`**: Controls what happens when you click on a configuration item in the tree view.
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+- **`openSettings`** (default): Clicking an item opens the configuration settings editor
+- **`none`**: Clicking an item has no action (use toolbar buttons instead)
 
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
+You can change this setting in VS Code:
+1. Open Settings (Ctrl+, or Cmd+,)
+2. Search for "Debug Configurations"
+3. Find the "Click Behavior" option
+4. Select your preferred behavior
 
 ## Release Notes
 
-Users appreciate release notes as you update your extension.
+### 0.0.1
 
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+Initial release with:
+- Configuration tree view
+- Launch.json synchronization
+- Add, edit, delete, and duplicate configurations
+- Run and debug support
+- Compound configuration support
 
 ---
 
-## Working with Markdown
-
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+**Enjoy better debug configuration management in VS Code!**
