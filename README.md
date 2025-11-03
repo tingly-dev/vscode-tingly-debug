@@ -51,9 +51,11 @@ A PyCharm-inspired debug and run configuration manager for VS Code that provides
 Click the gear (⚙️) icon on any configuration to open a comprehensive editor with:
 
 - **Visual Property Editing**: Edit all launch.json fields through a form interface
+- **Name Editing**: Edit configuration names with duplicate name validation
 - **Dynamic Field Management**: Add or remove configuration properties
 - **Real-time JSON Preview**: See the resulting JSON as you type
 - **Smart Value Parsing**: Automatically detects JSON vs string values
+- **Error Handling**: Get instant feedback when configuration names conflict
 
 ### Configuration Types Supported
 

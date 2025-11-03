@@ -48,13 +48,30 @@ export class ConfigurationEditor {
                 switch (message.command) {
                     case 'saveConfiguration':
                         try {
+                            const newName = message.config.name;
+                            const oldName = configData.name;
+
+                            // Check if name has changed and if there's a conflict
+                            if (newName !== oldName) {
+                                const launchJson = await provider.readLaunchJson();
+                                const existingConfig = launchJson.configurations.find(config => config.name === newName);
+
+                                if (existingConfig) {
+                                    // Send error message back to webview
+                                    panel.webview.postMessage({
+                                        command: 'showError',
+                                        message: `Configuration name "${newName}" already exists. Please choose a different name.`
+                                    });
+                                    return;
+                                }
+                            }
+
                             const updatedConfig: LaunchConfiguration = {
-                                ...message.config,
-                                name: configData.name
+                                ...message.config
                             };
 
                             await provider.updateConfiguration(launchConfig.name, updatedConfig);
-                            vscode.window.showInformationMessage(`Configuration "${launchConfig.name}" updated successfully!`);
+                            vscode.window.showInformationMessage(`Configuration "${newName}" updated successfully!`);
                             panel.dispose();
                         } catch (error) {
                             vscode.window.showErrorMessage(`Failed to update configuration: ${error}`);
@@ -213,6 +230,16 @@ export class ConfigurationEditor {
             max-height: 200px;
             overflow-y: auto;
         }
+        .error-message {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: var(--vscode-errorBackground);
+            border: 1px solid var(--vscode-errorBorder);
+            border-radius: 4px;
+            color: var(--vscode-errorForeground);
+            font-size: var(--vscode-font-size);
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -221,10 +248,21 @@ export class ConfigurationEditor {
             <h2>Configuration Settings</h2>
         </div>
 
-        <div class="config-info">
-            <strong>Name:</strong> ${configData.name}<br>
-            <strong>Type:</strong> ${configData.type}<br>
-            <strong>Request:</strong> ${configData.request}
+        <div class="section">
+            <div class="section-title">Basic Information</div>
+            <div class="field-group">
+                <label for="configName">Name</label>
+                <input type="text" id="configName" name="name" value="${configData.name}" placeholder="Configuration name">
+            </div>
+            <div class="field-group">
+                <label for="configType">Type</label>
+                <input type="text" id="configType" name="type" value="${configData.type}" readonly>
+            </div>
+            <div class="field-group">
+                <label for="configRequest">Request</label>
+                <input type="text" id="configRequest" name="request" value="${configData.request}" readonly>
+            </div>
+            <div id="errorMessage" class="error-message"></div>
         </div>
 
         <form id="configForm">
@@ -262,7 +300,7 @@ export class ConfigurationEditor {
         function updateJsonPreview() {
             const formData = new FormData(document.getElementById('configForm'));
             const config = {
-                name: "${configData.name}",
+                name: document.getElementById('configName').value,
                 type: "${configData.type}",
                 request: "${configData.request}"
             };
@@ -280,6 +318,17 @@ export class ConfigurationEditor {
             }
 
             document.getElementById('jsonPreview').textContent = JSON.stringify(config, null, 2);
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        function hideError() {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.style.display = 'none';
         }
 
         function addField() {
@@ -320,9 +369,11 @@ export class ConfigurationEditor {
         }
 
         function saveConfiguration() {
+            hideError(); // Hide any previous errors
+
             const formData = new FormData(document.getElementById('configForm'));
             const config = {
-                name: "${configData.name}",
+                name: document.getElementById('configName').value,
                 type: "${configData.type}",
                 request: "${configData.request}"
             };
@@ -354,6 +405,16 @@ export class ConfigurationEditor {
         // Add event listeners to all existing fields
         document.querySelectorAll('input[type="text"]').forEach(input => {
             input.addEventListener('input', updateJsonPreview);
+        });
+
+        // Listen for messages from the extension
+        window.addEventListener('message', event => {
+            const message = event.data;
+            switch (message.command) {
+                case 'showError':
+                    showError(message.message);
+                    break;
+            }
         });
 
         // Initial JSON preview
