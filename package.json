@@ -89,6 +89,13 @@
                     "group": "navigation"
                 }
             ],
+            "editor/title": [
+                {
+                    "command": "ddd.debugConfig.createFromFile",
+                    "when": "resourceExtname =~ /\\.(js|ts|tsx|jsx|mjs|cjs|py|java|cpp|c|go|rs|php|rb|cs|html|htm|dart|ps1|sh|bash|zsh|fish|lua|ex|exs|kt|kts|scala|sc)$/",
+                    "group": "navigation"
+                }
+            ],
             "view/item/context": [
                 {
                     "command": "ddd.debugConfig.run",

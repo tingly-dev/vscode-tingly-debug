@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { DebugConfigurationProvider, DebugConfigurationItem } from './debugTreeView';
 import { LaunchConfiguration, LaunchCompound } from './types';
 import { ConfigurationEditor } from './configurationEditor';
+import { FileTypeMapper } from './fileTypeMapper';
 
 export function registerCommandHandlers(
     context: vscode.ExtensionContext,
@@ -21,7 +22,9 @@ export function registerCommandHandlers(
             prompt: 'Configuration name'
         });
 
-        if (name === undefined) return;
+        if (name === undefined) {
+            return;
+        }
 
         const typeItems = [
             { label: 'Node.js', description: 'Launch Node.js application' },
@@ -38,7 +41,9 @@ export function registerCommandHandlers(
             placeHolder: 'Select configuration type'
         });
 
-        if (selectedType === undefined) return;
+        if (selectedType === undefined) {
+            return;
+        }
 
         const requestType = await vscode.window.showQuickPick([
             { label: 'Launch', description: 'Start a new debug session' },
@@ -47,66 +52,52 @@ export function registerCommandHandlers(
             placeHolder: 'Select request type'
         });
 
-        if (requestType === undefined) return;
+        if (requestType === undefined) {
+            return;
+        }
+
+        const typeMap: Record<string, string> = {
+            'Node.js': 'node',
+            'Python': 'python',
+            'Chrome': 'chrome',
+            'Edge': 'msedge',
+            'Firefox': 'firefox',
+            'Extension Host': 'extensionHost',
+            'CoreCLR (.NET)': 'coreclr',
+            'Custom': 'node'
+        };
 
         const newConfig: LaunchConfiguration = {
-            name,
-            type: selectedType.label.toLowerCase().replace(' ', '').replace('.', ''),
-            request: requestType.label.toLowerCase()
+            name: name,
+            type: typeMap[selectedType.label],
+            request: requestType.label.toLowerCase() as 'launch' | 'attach'
         };
 
         try {
             await provider.addConfiguration(newConfig);
-            vscode.window.showInformationMessage(`Configuration "${name}" added successfully!`);
+            vscode.window.showInformationMessage(`Configuration "${name}" created successfully!`);
         } catch (error) {
-            vscode.window.showErrorMessage(`Failed to add configuration: ${error}`);
+            vscode.window.showErrorMessage(`Failed to create configuration: ${error}`);
         }
     });
 
     // Edit configuration command
     const editCommand = vscode.commands.registerCommand('ddd.debugConfig.edit', async (item: DebugConfigurationItem) => {
-        const config = item.config;
-        const name = await vscode.window.showInputBox({
-            value: config.name,
-            placeHolder: 'Configuration name',
-            prompt: 'Enter new configuration name'
-        });
-
-        if (name === undefined || name === config.name) return;
-
-        try {
-            if ('configurations' in config) {
-                const newCompound: LaunchCompound = {
-                    ...(config as LaunchCompound),
-                    name
-                };
-                await provider.updateConfiguration(config.name, newCompound);
-            } else {
-                const newConfig: LaunchConfiguration = {
-                    ...config,
-                    name
-                };
-                await provider.updateConfiguration(config.name, newConfig);
-            }
-            vscode.window.showInformationMessage(`Configuration renamed to "${name}" successfully!`);
-        } catch (error) {
-            vscode.window.showErrorMessage(`Failed to rename configuration: ${error}`);
-        }
+        ConfigurationEditor.openConfigurationEditor(item.config, provider);
     });
 
     // Delete configuration command
     const deleteCommand = vscode.commands.registerCommand('ddd.debugConfig.delete', async (item: DebugConfigurationItem) => {
-        const config = item.config;
         const result = await vscode.window.showWarningMessage(
-            `Are you sure you want to delete configuration "${config.name}"?`,
-            { modal: true },
-            'Delete'
+            `Are you sure you want to delete configuration "${item.config.name}"?`,
+            'Delete',
+            'Cancel'
         );
 
         if (result === 'Delete') {
             try {
-                await provider.deleteConfiguration(config.name);
-                vscode.window.showInformationMessage(`Configuration "${config.name}" deleted successfully!`);
+                await provider.deleteConfiguration(item.config.name);
+                vscode.window.showInformationMessage(`Configuration "${item.config.name}" deleted successfully!`);
             } catch (error) {
                 vscode.window.showErrorMessage(`Failed to delete configuration: ${error}`);
             }
@@ -125,41 +116,29 @@ export function registerCommandHandlers(
 
     // Run configuration command
     const runCommand = vscode.commands.registerCommand('ddd.debugConfig.run', async (item: DebugConfigurationItem) => {
-        // Cannot run/debug compound configurations
-        if ('configurations' in item.config) {
-            vscode.window.showWarningMessage('Cannot run compound configurations. Please run individual configurations.');
-            return;
-        }
-
         try {
-            const success = await vscode.debug.startDebugging(undefined, item.config as LaunchConfiguration);
-            if (success) {
-                vscode.window.showInformationMessage(`Started running "${item.config.name}"`);
-            } else {
-                vscode.window.showErrorMessage(`Failed to start running "${item.config.name}"`);
+            // Only run configurations, not compounds
+            if ('configurations' in item.config) {
+                vscode.window.showWarningMessage('Cannot run compound configurations directly. Please select an individual configuration.');
+                return;
             }
+            await vscode.debug.startDebugging(undefined, item.config as LaunchConfiguration);
         } catch (error) {
-            vscode.window.showErrorMessage(`Failed to start running: ${error}`);
+            vscode.window.showErrorMessage(`Failed to start debug session: ${error}`);
         }
     });
 
     // Debug configuration command
     const debugCommand = vscode.commands.registerCommand('ddd.debugConfig.debug', async (item: DebugConfigurationItem) => {
-        // Cannot run/debug compound configurations
-        if ('configurations' in item.config) {
-            vscode.window.showWarningMessage('Cannot debug compound configurations. Please debug individual configurations.');
-            return;
-        }
-
         try {
-            const success = await vscode.debug.startDebugging(undefined, item.config as LaunchConfiguration);
-            if (success) {
-                vscode.window.showInformationMessage(`Started debugging "${item.config.name}"`);
-            } else {
-                vscode.window.showErrorMessage(`Failed to start debugging "${item.config.name}"`);
+            // Only debug configurations, not compounds
+            if ('configurations' in item.config) {
+                vscode.window.showWarningMessage('Cannot debug compound configurations directly. Please select an individual configuration.');
+                return;
             }
+            await vscode.debug.startDebugging(undefined, item.config as LaunchConfiguration);
         } catch (error) {
-            vscode.window.showErrorMessage(`Failed to start debugging: ${error}`);
+            vscode.window.showErrorMessage(`Failed to start debug session: ${error}`);
         }
     });
 
@@ -172,6 +151,7 @@ export function registerCommandHandlers(
         }
 
         const currentFile = editor.document.uri.fsPath;
+
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (!workspaceFolders || workspaceFolders.length === 0) {
             vscode.window.showErrorMessage('No workspace folder found');
@@ -180,100 +160,50 @@ export function registerCommandHandlers(
 
         const workspaceRoot = workspaceFolders[0].uri.fsPath;
 
-        // Get relative path from workspace root
-        let relativePath = currentFile.replace(workspaceRoot, '');
-        if (relativePath.startsWith('/') || relativePath.startsWith('\\')) {
-            relativePath = relativePath.substring(1);
+        // Check if file type is supported
+        const fileTypeInfo = FileTypeMapper.getFileTypeInfo(currentFile);
+        if (!fileTypeInfo) {
+            const fileExtension = currentFile.split('.').pop()?.toLowerCase();
+            vscode.window.showWarningMessage(
+                `File type ".${fileExtension}" is not supported for automatic configuration creation. ` +
+                `Supported types: ${Object.keys(FileTypeMapper.getSupportedFileTypes()).map(ext => `.${ext}`).join(', ')}`
+            );
+            return;
         }
 
-        // Create configuration name based on relative path
-        let configName = relativePath
-            .replace(/\.(js|ts|py|java|cpp|c|go|rs|php|rb)$/, '') // Remove file extension
-            .replace(/[\/\\]/g, ' ') // Replace path separators with spaces
-            .replace(/\s+/g, ' ') // Replace multiple spaces with single space
-            .trim();
-
-        // If no name after processing, use file name without extension
-        if (!configName) {
-            const fileName = currentFile.split(/[\/\\]/).pop() || 'current-file';
-            configName = fileName.replace(/\.[^.]*$/, '');
-        }
-
-        // Check for existing configurations and add suffix if needed
+        // Generate unique configuration name
+        const baseConfigName = FileTypeMapper.generateConfigName(currentFile, workspaceRoot);
         const launchJson = await provider.readLaunchJson();
-        let finalConfigName = configName;
+        let finalConfigName = baseConfigName;
         let counter = 1;
 
         while (launchJson.configurations.some(config => config.name === finalConfigName)) {
-            finalConfigName = `${configName} - ${counter}`;
+            finalConfigName = `${baseConfigName} - ${counter}`;
             counter++;
         }
 
-        // Detect configuration type based on file extension
-        const fileExtension = currentFile.split('.').pop()?.toLowerCase();
-        let configType = 'node';
-
-        switch (fileExtension) {
-            case 'py':
-                configType = 'python';
-                break;
-            case 'js':
-            case 'mjs':
-                configType = 'node';
-                break;
-            case 'ts':
-                configType = 'node';
-                break;
-            case 'java':
-                configType = 'java';
-                break;
-            case 'cpp':
-            case 'c':
-                configType = 'cppdbg';
-                break;
-            case 'go':
-                configType = 'go';
-                break;
-            case 'rs':
-                configType = 'rust';
-                break;
-            case 'php':
-                configType = 'php';
-                break;
-            case 'rb':
-                configType = 'ruby';
-                break;
-            default:
-                configType = 'node';
-        }
-
-        const newConfig: LaunchConfiguration = {
-            name: finalConfigName,
-            type: configType,
-            request: 'launch',
-            program: relativePath
-        };
-
-        // Add type-specific properties
-        if (configType === 'node') {
-            newConfig.console = 'integratedTerminal';
-            newConfig.stopOnEntry = false;
-            if (fileExtension === 'ts') {
-                newConfig.args = [relativePath];
-                newConfig.runtimeArgs = ['-r', 'ts-node/register'];
-            }
-        } else if (configType === 'python') {
-            newConfig.program = relativePath;
-            newConfig.console = 'integratedTerminal';
-            newConfig.justMyCode = true;
-        } else if (configType === 'java') {
-            newConfig.mainClass = relativePath.replace(/\.[^.]*$/, '').replace(/[\/\\]/g, '.');
-            newConfig.projectName = 'Default Project';
-        }
+        // Create default configuration using the mapper
+        const newConfig = FileTypeMapper.createDefaultConfiguration(currentFile, workspaceRoot, finalConfigName);
 
         try {
             await provider.addConfiguration(newConfig);
-            vscode.window.showInformationMessage(`Quick configuration "${finalConfigName}" created for ${fileExtension?.toUpperCase() || 'current'} file!`);
+            vscode.window.showInformationMessage(
+                `Debug configuration "${finalConfigName}" created for ${fileTypeInfo.displayName} file!`
+            );
+
+            // Open the configuration editor for the newly created configuration
+            setTimeout(async () => {
+                try {
+                    // Find the newly created configuration in the provider
+                    const configItems = await provider.getConfigurations();
+                    const createdItem = configItems.find(item => item.config.name === finalConfigName);
+                    if (createdItem) {
+                        ConfigurationEditor.openConfigurationEditor(createdItem.config, provider);
+                    }
+                } catch (error) {
+                    console.error('Failed to open configuration editor:', error);
+                }
+            }, 500); // Small delay to ensure the UI updates
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to create configuration: ${error}`);
         }
