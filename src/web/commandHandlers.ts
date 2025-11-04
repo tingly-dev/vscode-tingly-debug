@@ -11,8 +11,46 @@ export function registerCommandHandlers(
 ): void {
 
     // Refresh command
-    const refreshCommand = vscode.commands.registerCommand('ddd.debugConfig.refresh', () => {
-        provider.refresh();
+    const refreshCommand = vscode.commands.registerCommand('ddd.debugConfig.refresh', async () => {
+        try {
+            // Show loading indicator
+            await vscode.window.withProgress({
+                location: vscode.ProgressLocation.Notification,
+                title: "Refreshing debug configurations...",
+                cancellable: false
+            }, async (progress) => {
+                progress.report({ increment: 0, message: "Reading launch.json..." });
+
+                try {
+                    // Force re-read of launch.json file
+                    const configurations = await provider.getConfigurations();
+
+                    progress.report({ increment: 50, message: "Updating configuration list..." });
+
+                    // Refresh the tree view
+                    provider.refresh();
+
+                    progress.report({ increment: 100, message: "Complete!" });
+
+                    // Show success message with configuration count
+                    const configCount = configurations.length;
+                    const message = configCount === 0
+                        ? "No debug configurations found. Use the + button to add one."
+                        : `Successfully refreshed! Found ${configCount} debug configuration${configCount === 1 ? '' : 's'}.`;
+
+                    vscode.window.showInformationMessage(message);
+
+                } catch (error) {
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    console.error('Refresh error:', error);
+                    vscode.window.showErrorMessage(`Failed to refresh debug configurations: ${errorMessage}`);
+                }
+            });
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            console.error('Refresh initialization error:', error);
+            vscode.window.showErrorMessage(`Failed to initialize refresh: ${errorMessage}`);
+        }
     });
 
     // Add configuration command

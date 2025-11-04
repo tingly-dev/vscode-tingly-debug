@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { ClickBehavior, LaunchCompound, LaunchConfiguration, LaunchJson } from './types';
+import { parseJSONC, serializeJSONC, updateLaunchConfiguration, addLaunchConfiguration, removeLaunchConfiguration } from './jsoncUtils';
 
 export class DebugConfigurationItem extends vscode.TreeItem {
     constructor(
@@ -113,6 +114,7 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
     }
 
     refresh(): void {
+        // Clear any cached data by firing tree data change event
         this._onDidChangeTreeData.fire();
     }
 
@@ -160,7 +162,8 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
             const launchUri = vscode.Uri.file(this.launchJsonPath);
             const document = await vscode.workspace.openTextDocument(launchUri);
             const content = document.getText();
-            return JSON.parse(content);
+            const data = parseJSONC(content);
+            return data;
         } catch (error) {
             // Return default structure if file doesn't exist or is invalid
             return {
@@ -172,7 +175,9 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
 
     async writeLaunchJson(launchJson: LaunchJson): Promise<void> {
         try {
-            const content = JSON.stringify(launchJson, null, 2);
+            // Use simplified JSONC serialization
+            const content = serializeJSONC(launchJson);
+
             const launchUri = vscode.Uri.file(this.launchJsonPath);
 
             // Create .vscode directory if it doesn't exist
@@ -190,52 +195,91 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
     }
 
     async addConfiguration(config: LaunchConfiguration): Promise<void> {
-        const launchJson = await this.readLaunchJson();
-        launchJson.configurations.push(config);
-        await this.writeLaunchJson(launchJson);
-        this.refresh();
+        try {
+            const launchUri = vscode.Uri.file(this.launchJsonPath);
+            const document = await vscode.workspace.openTextDocument(launchUri);
+            const existingContent = document.getText();
+
+            // Use simplified JSONC utility to add configuration
+            const newContent = addLaunchConfiguration(existingContent, config);
+
+            await vscode.workspace.fs.writeFile(launchUri, new TextEncoder().encode(newContent));
+            this.refresh();
+        } catch (error) {
+            // Fallback to original method if file doesn't exist
+            const launchJson = await this.readLaunchJson();
+            launchJson.configurations.push(config);
+            await this.writeLaunchJson(launchJson);
+            this.refresh();
+        }
     }
 
     async updateConfiguration(oldName: string, newConfig: LaunchConfiguration | LaunchCompound): Promise<void> {
-        const launchJson = await this.readLaunchJson();
+        try {
+            const launchUri = vscode.Uri.file(this.launchJsonPath);
+            const document = await vscode.workspace.openTextDocument(launchUri);
+            const existingContent = document.getText();
 
-        // Find and update configuration
-        const configIndex = launchJson.configurations.findIndex(config => config.name === oldName);
-        if (configIndex !== -1) {
-            launchJson.configurations[configIndex] = newConfig as LaunchConfiguration;
-        } else {
-            // Check if it's a compound
-            const compoundIndex = launchJson.compounds?.findIndex(compound => compound.name === oldName);
-            if (compoundIndex !== undefined && compoundIndex !== -1) {
-                launchJson.compounds![compoundIndex] = newConfig as LaunchCompound;
+            // Use JSONC utility to update configuration while preserving comments
+            const newContent = updateLaunchConfiguration(existingContent, oldName, newConfig);
+
+            await vscode.workspace.fs.writeFile(launchUri, new TextEncoder().encode(newContent));
+            this.refresh();
+        } catch (error) {
+            // Fallback to original method if something goes wrong
+            const launchJson = await this.readLaunchJson();
+
+            // Find and update configuration
+            const configIndex = launchJson.configurations.findIndex(config => config.name === oldName);
+            if (configIndex !== -1) {
+                launchJson.configurations[configIndex] = newConfig as LaunchConfiguration;
             } else {
-                throw new Error(`Configuration "${oldName}" not found`);
+                // Check if it's a compound
+                const compoundIndex = launchJson.compounds?.findIndex(compound => compound.name === oldName);
+                if (compoundIndex !== undefined && compoundIndex !== -1) {
+                    launchJson.compounds![compoundIndex] = newConfig as LaunchCompound;
+                } else {
+                    throw new Error(`Configuration "${oldName}" not found`);
+                }
             }
-        }
 
-        await this.writeLaunchJson(launchJson);
-        this.refresh();
+            await this.writeLaunchJson(launchJson);
+            this.refresh();
+        }
     }
 
     async deleteConfiguration(name: string): Promise<void> {
-        const launchJson = await this.readLaunchJson();
+        try {
+            const launchUri = vscode.Uri.file(this.launchJsonPath);
+            const document = await vscode.workspace.openTextDocument(launchUri);
+            const existingContent = document.getText();
 
-        // Remove from configurations
-        const configIndex = launchJson.configurations.findIndex(config => config.name === name);
-        if (configIndex !== -1) {
-            launchJson.configurations.splice(configIndex, 1);
-        } else {
-            // Check if it's a compound
-            const compoundIndex = launchJson.compounds?.findIndex(compound => compound.name === name);
-            if (compoundIndex !== undefined && compoundIndex !== -1) {
-                launchJson.compounds!.splice(compoundIndex, 1);
+            // Use JSONC utility to remove configuration while preserving comments
+            const newContent = removeLaunchConfiguration(existingContent, name);
+
+            await vscode.workspace.fs.writeFile(launchUri, new TextEncoder().encode(newContent));
+            this.refresh();
+        } catch (error) {
+            // Fallback to original method if something goes wrong
+            const launchJson = await this.readLaunchJson();
+
+            // Remove from configurations
+            const configIndex = launchJson.configurations.findIndex(config => config.name === name);
+            if (configIndex !== -1) {
+                launchJson.configurations.splice(configIndex, 1);
             } else {
-                throw new Error(`Configuration "${name}" not found`);
+                // Check if it's a compound
+                const compoundIndex = launchJson.compounds?.findIndex(compound => compound.name === name);
+                if (compoundIndex !== undefined && compoundIndex !== -1) {
+                    launchJson.compounds!.splice(compoundIndex, 1);
+                } else {
+                    throw new Error(`Configuration "${name}" not found`);
+                }
             }
-        }
 
-        await this.writeLaunchJson(launchJson);
-        this.refresh();
+            await this.writeLaunchJson(launchJson);
+            this.refresh();
+        }
     }
 
     async duplicateConfiguration(config: LaunchConfiguration | LaunchCompound): Promise<void> {
