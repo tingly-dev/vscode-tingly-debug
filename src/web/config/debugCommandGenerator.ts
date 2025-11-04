@@ -49,6 +49,8 @@ export class SymbolDetector {
         );
 
         if (!symbols) {
+            vscode.window.showInformationMessage(`No symbols found in this document ${document.uri}. Make sure the file has valid functions, classes, or methods.`);
+            console.log('Debug Command Generator: No symbols found in document:', document.uri.fsPath);
             return null;
         }
 
@@ -91,6 +93,8 @@ export class SymbolDetector {
         }
 
         if (symbolPath.length === 0) {
+            vscode.window.showWarningMessage(`Unable to identify a valid test function or method to debug. Please select a test function, class, or method name.`);
+            console.log('Debug Command Generator: No symbol path found for selection:', selectedText || 'word at cursor');
             return null;
         }
 

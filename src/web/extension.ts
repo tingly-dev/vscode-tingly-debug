@@ -1,8 +1,8 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { DebugConfigurationProvider } from './debugTreeView';
-import { registerCommandHandlers } from './commandHandlers';
+import { registerCommandHandlers } from './core/commandHandlers';
+import { DebugConfigurationProvider } from './views/debugPanel';
 
 // This method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
@@ -62,4 +62,4 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }

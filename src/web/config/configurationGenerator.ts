@@ -1,8 +1,8 @@
 // Configuration generation system for symbols and directories
 
 import * as vscode from 'vscode';
+import { DebugConfigurationProvider } from '../views/debugPanel';
 import { CommandGenerator, SymbolInfo } from './debugCommandGenerator';
-import { DebugConfigurationProvider } from './debugTreeView';
 
 export interface ConfigurationTarget {
     type: 'symbol' | 'directory';

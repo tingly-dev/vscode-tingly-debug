@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { ClickBehavior, LaunchCompound, LaunchConfiguration, LaunchJson } from './types';
-import { parseJSONC, parseJSONCConfigurations, serializeJSONC, updateLaunchConfiguration, addLaunchConfiguration, removeLaunchConfiguration } from './jsoncUtils';
+import { ClickBehavior, LaunchCompound, LaunchConfiguration, LaunchJson } from '../core/types';
+import { parseJSONC, parseJSONCConfigurations, serializeJSONC, updateLaunchConfiguration, addLaunchConfiguration, removeLaunchConfiguration } from '../util/jsoncUtils';
 
 export class DebugConfigurationItem extends vscode.TreeItem {
     constructor(
@@ -15,12 +15,19 @@ export class DebugConfigurationItem extends vscode.TreeItem {
         this.iconPath = this.getIconForConfig(config);
 
         // Set command based on click behavior configuration
-        if (clickBehavior === 'openSettings') {
+        // Default to 'openSettings' if clickBehavior is not set
+        const behavior = clickBehavior || 'openSettings';
+        console.log(`DebugConfigurationItem: behavior=${behavior} for config=${config.name}`);
+
+        if (behavior === 'openSettings') {
             this.command = {
                 command: 'ddd.debugConfig.openSettings',
                 title: 'Open Configuration Settings',
                 arguments: [this]
             };
+            console.log(`DebugConfigurationItem: Set command for ${config.name}`);
+        } else {
+            console.log(`DebugConfigurationItem: No command set for ${config.name} due to behavior=${behavior}`);
         }
     }
 
@@ -136,6 +143,8 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
             const config = vscode.workspace.getConfiguration('ddd');
             const clickBehavior = config.get<ClickBehavior>('clickBehavior', 'openSettings');
 
+            console.log(`DebugConfigurationProvider: read ${configurations.length} configurations, clickBehavior=${clickBehavior}`);
+
             const items: DebugConfigurationItem[] = [];
 
             // Add configurations only
@@ -143,6 +152,7 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
                 items.push(new DebugConfigurationItem(config, vscode.TreeItemCollapsibleState.None, clickBehavior));
             }
 
+            console.log(`DebugConfigurationProvider: created ${items.length} DebugConfigurationItems`);
             return items;
         } catch (error) {
             console.error('Error reading launch.json configurations:', error);

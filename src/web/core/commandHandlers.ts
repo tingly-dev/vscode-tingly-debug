@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
-import { ConfigurationEditor } from './configurationEditor';
-import { ConfigurationGenerator, ConfigurationTarget } from './configurationGenerator';
-import { CommandGenerator, SymbolDetector, SymbolInfo } from './debugCommandGenerator';
-import { DebugConfigurationItem, DebugConfigurationProvider } from './debugTreeView';
-import { FileTypeMapper } from './fileTypeMapper';
+import { ConfigurationGenerator, ConfigurationTarget } from '../config/configurationGenerator';
+import { CommandGenerator, SymbolDetector, SymbolInfo } from '../config/debugCommandGenerator';
+import { FileTypeMapper } from '../util/fileTypeMapper';
+import { ConfigurationEditor } from '../views/configurationEditor';
+import { DebugConfigurationItem, DebugConfigurationProvider } from '../views/debugPanel';
 import { LaunchConfiguration } from './types';
 
 export function registerCommandHandlers(
@@ -367,6 +367,7 @@ export function registerCommandHandlers(
 
     // Open settings command (using configuration editor)
     const openSettingsCommand = vscode.commands.registerCommand('ddd.debugConfig.openSettings', async (item: DebugConfigurationItem) => {
+        console.log('openSettingsCommand triggered for item:', item.config.name);
         await ConfigurationEditor.openConfigurationEditor(item.config, provider);
     });
 

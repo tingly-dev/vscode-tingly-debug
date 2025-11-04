@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { DebugConfigurationProvider } from './debugTreeView';
-import { ConfigurationData, LaunchCompound, LaunchConfiguration } from './types';
+import { ConfigurationData, LaunchCompound, LaunchConfiguration } from '../core/types';
+import { DebugConfigurationProvider } from './debugPanel';
 
 export class ConfigurationEditor {
     private static openPanels = new Map<string, vscode.WebviewPanel>();
@@ -121,10 +121,10 @@ export class ConfigurationEditor {
      */
     private static escapeHtmlTags(value: string): string {
         return value.replace(/&/g, '&amp;')
-                   .replace(/</g, '&lt;')
-                   .replace(/>/g, '&gt;')
-                   .replace(/"/g, '&quot;')
-                   .replace(/'/g, '&#39;');
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     static async openConfigurationEditor(
@@ -222,9 +222,10 @@ export class ConfigurationEditor {
                         }
                         break;
                     case 'performSwitch':
-                        // Perform the actual switch
+                        // Perform the actual switch (no data changes)
                         ConfigurationEditor.closeCurrentPanel();
-                        // Re-open with new configuration
+                        // Show notification and re-open with new configuration
+                        vscode.window.showInformationMessage(`Switching to configuration "${message.newConfigName}"`);
                         await ConfigurationEditor.openConfigurationEditor(
                             { name: message.newConfigName, type: '', request: 'launch' } as LaunchConfiguration,
                             provider
@@ -1109,141 +1110,141 @@ API_URL=http://localhost:3000
         }
 
         function handlePanelSwitchRequest(newConfigName) {
-            if (!isDirty) {
-                // No unsaved changes, directly switch
+            const currentConfigName = document.getElementById('configName').value;
+
+            // Check if data has actually changed
+            if (!hasDataChanged()) {
+                // No actual data changes, directly switch with notification
                 vscode.postMessage({
-                    command: 'confirmSwitch',
-                    action: 'switch',
+                    command: 'performSwitch',
                     newConfigName: newConfigName
                 });
-            } else {
-                // There are unsaved changes, show confirmation dialog
-                const currentConfigName = document.getElementById('configName').value;
+                return;
+            }
 
-                // Create confirmation dialog
-                const shouldShowDialog = () => {
-                    const modal = document.createElement('div');
-                    modal.style.cssText = \`
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background-color: rgba(0, 0, 0, 0.5);
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        z-index: 10000;
-                    \`;
+            // There are actual changes, show confirmation dialog
+            const shouldShowDialog = () => {
+                const modal = document.createElement('div');
+                modal.style.cssText = \`
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                \`;
 
-                    const dialog = document.createElement('div');
-                    dialog.style.cssText = \`
-                        background-color: var(--vscode-editor-background);
-                        border: 1px solid var(--vscode-panel-border);
-                        border-radius: 6px;
-                        padding: 20px;
-                        min-width: 400px;
-                        max-width: 600px;
-                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-                    \`;
+                const dialog = document.createElement('div');
+                dialog.style.cssText = \`
+                    background-color: var(--vscode-editor-background);
+                    border: 1px solid var(--vscode-panel-border);
+                    border-radius: 6px;
+                    padding: 20px;
+                    min-width: 400px;
+                    max-width: 600px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                \`;
 
-                    dialog.innerHTML = \`
-                        <h3 style="margin: 0 0 15px 0; color: var(--vscode-foreground);">
-                            Switch Configuration?
-                        </h3>
-                        <p style="margin: 0 0 20px 0; color: var(--vscode-foreground);">
-                            You have unsaved changes to "\${currentConfigName}". What would you like to do with these changes?
-                        </p>
-                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                            <button type="button" id="btn-cancel" style="
-                                padding: 8px 16px;
-                                border: 1px solid var(--vscode-button-border);
-                                background-color: var(--vscode-button-secondaryBackground);
-                                color: var(--vscode-button-secondaryForeground);
-                                border-radius: 3px;
-                                cursor: pointer;
-                            ">Cancel</button>
-                            <button type="button" id="btn-discard" style="
-                                padding: 8px 16px;
-                                border: 1px solid var(--vscode-button-border);
-                                background-color: var(--vscode-button-secondaryBackground);
-                                color: var(--vscode-button-secondaryForeground);
-                                border-radius: 3px;
-                                cursor: pointer;
-                            ">Discard Changes</button>
-                            <button type="button" id="btn-save" style="
-                                padding: 8px 16px;
-                                border: 1px solid var(--vscode-button-border);
-                                background-color: var(--vscode-button-background);
-                                color: var(--vscode-button-foreground);
-                                border-radius: 3px;
-                                cursor: pointer;
-                            ">Save & Switch</button>
-                        </div>
-                    \`;
+                dialog.innerHTML = \`
+                    <h3 style="margin: 0 0 15px 0; color: var(--vscode-foreground);">
+                        Switch Configuration?
+                    </h3>
+                    <p style="margin: 0 0 20px 0; color: var(--vscode-foreground);">
+                        You have unsaved changes to "\${currentConfigName}". What would you like to do with these changes?
+                    </p>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" id="btn-cancel" style="
+                            padding: 8px 16px;
+                            border: 1px solid var(--vscode-button-border);
+                            background-color: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                            border-radius: 3px;
+                            cursor: pointer;
+                        ">Cancel</button>
+                        <button type="button" id="btn-discard" style="
+                            padding: 8px 16px;
+                            border: 1px solid var(--vscode-button-border);
+                            background-color: var(--vscode-button-secondaryBackground);
+                            color: var(--vscode-button-secondaryForeground);
+                            border-radius: 3px;
+                            cursor: pointer;
+                        ">Discard Changes</button>
+                        <button type="button" id="btn-save" style="
+                            padding: 8px 16px;
+                            border: 1px solid var(--vscode-button-border);
+                            background-color: var(--vscode-button-background);
+                            color: var(--vscode-button-foreground);
+                            border-radius: 3px;
+                            cursor: pointer;
+                        ">Save & Switch</button>
+                    </div>
+                \`;
 
-                    modal.appendChild(dialog);
-                    document.body.appendChild(modal);
+                modal.appendChild(dialog);
+                document.body.appendChild(modal);
 
-                    // Add event listeners
-                    document.getElementById('btn-cancel').addEventListener('click', () => {
+                // Add event listeners
+                document.getElementById('btn-cancel').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                    vscode.postMessage({
+                        command: 'confirmSwitch',
+                        action: 'cancel',
+                        newConfigName: newConfigName
+                    });
+                });
+
+                document.getElementById('btn-discard').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                    vscode.postMessage({
+                        command: 'confirmSwitch',
+                        action: 'discard',
+                        newConfigName: newConfigName
+                    });
+                });
+
+                document.getElementById('btn-save').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                    // Save current configuration first
+                    const currentConfig = getCurrentFormConfig();
+                    vscode.postMessage({
+                        command: 'saveAndSwitch',
+                        config: currentConfig,
+                        newConfigName: newConfigName
+                    });
+                });
+
+                // Close on outside click
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
                         document.body.removeChild(modal);
                         vscode.postMessage({
                             command: 'confirmSwitch',
                             action: 'cancel',
                             newConfigName: newConfigName
                         });
-                    });
+                    }
+                });
 
-                    document.getElementById('btn-discard').addEventListener('click', () => {
+                // Close on Escape key
+                const handleEscape = (e) => {
+                    if (e.key === 'Escape') {
                         document.body.removeChild(modal);
+                        document.removeEventListener('keydown', handleEscape);
                         vscode.postMessage({
                             command: 'confirmSwitch',
-                            action: 'discard',
+                            action: 'cancel',
                             newConfigName: newConfigName
                         });
-                    });
-
-                    document.getElementById('btn-save').addEventListener('click', () => {
-                        document.body.removeChild(modal);
-                        // Save current configuration first
-                        const currentConfig = getCurrentFormConfig();
-                        vscode.postMessage({
-                            command: 'saveAndSwitch',
-                            config: currentConfig,
-                            newConfigName: newConfigName
-                        });
-                    });
-
-                    // Close on outside click
-                    modal.addEventListener('click', (e) => {
-                        if (e.target === modal) {
-                            document.body.removeChild(modal);
-                            vscode.postMessage({
-                                command: 'confirmSwitch',
-                                action: 'cancel',
-                                newConfigName: newConfigName
-                            });
-                        }
-                    });
-
-                    // Close on Escape key
-                    const handleEscape = (e) => {
-                        if (e.key === 'Escape') {
-                            document.body.removeChild(modal);
-                            document.removeEventListener('keydown', handleEscape);
-                            vscode.postMessage({
-                                command: 'confirmSwitch',
-                                action: 'cancel',
-                                newConfigName: newConfigName
-                            });
-                        }
-                    };
-                    document.addEventListener('keydown', handleEscape);
+                    }
                 };
+                document.addEventListener('keydown', handleEscape);
+            };
 
-                shouldShowDialog();
-            }
+            shouldShowDialog();
         }
 
         function updateTypeFromSelect() {
@@ -1440,6 +1441,43 @@ API_URL=http://localhost:3000
                 console.error('Error getting form configuration:', error);
                 return {};
             }
+        }
+
+        function hasDataChanged() {
+            const currentConfig = getCurrentFormConfig();
+            return !deepEqual(currentConfig, JSON.parse(initialConfig));
+        }
+
+        function deepEqual(obj1, obj2) {
+            if (obj1 === obj2) return true;
+
+            if (obj1 == null || obj2 == null) return obj1 === obj2;
+
+            if (typeof obj1 !== typeof obj2) return false;
+
+            if (typeof obj1 !== 'object') return obj1 === obj2;
+
+            if (Array.isArray(obj1) !== Array.isArray(obj2)) return false;
+
+            if (Array.isArray(obj1)) {
+                if (obj1.length !== obj2.length) return false;
+                for (let i = 0; i < obj1.length; i++) {
+                    if (!deepEqual(obj1[i], obj2[i])) return false;
+                }
+                return true;
+            }
+
+            const keys1 = Object.keys(obj1);
+            const keys2 = Object.keys(obj2);
+
+            if (keys1.length !== keys2.length) return false;
+
+            for (const key of keys1) {
+                if (!keys2.includes(key)) return false;
+                if (!deepEqual(obj1[key], obj2[key])) return false;
+            }
+
+            return true;
         }
 
         function updateJsonPreview() {
