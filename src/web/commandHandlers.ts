@@ -13,7 +13,8 @@ export function registerCommandHandlers(
 ): void {
 
     /**
-     * Handle command generation for run or debug
+     * Handle command generation for both run and debug (unified configuration generation)
+     * Configuration generation is the same for both run and debug modes
      */
     async function handleGenerateCommand(commandType: 'run' | 'debug'): Promise<void> {
         try {
@@ -28,10 +29,8 @@ export function registerCommandHandlers(
                 }
             }
 
-            // Generate the command
-            const commandTemplate = commandType === 'run'
-                ? await CommandGenerator.generateRunCommand(symbol)
-                : await CommandGenerator.generateDebugCommand(symbol);
+            // Generate the debug configuration (used for both run and debug)
+            const commandTemplate = await CommandGenerator.generateDebugCommand(symbol);
 
             if (!commandTemplate) {
                 vscode.window.showErrorMessage(`Could not generate ${commandType} command for ${symbol.language} symbol "${symbol.name}"`);
@@ -365,12 +364,7 @@ export function registerCommandHandlers(
         ConfigurationEditor.openConfigurationEditor(item.config, provider);
     });
 
-    // Generate run command from symbol
-    const generateRunCommandCommand = vscode.commands.registerCommand('ddd.generateRunCommand', async () => {
-        await handleGenerateCommand('run');
-    });
-
-    // Generate debug command from symbol
+    // Generate debug command from symbol (used for both run and debug modes)
     const generateDebugCommandCommand = vscode.commands.registerCommand('ddd.generateDebugCommand', async () => {
         await handleGenerateCommand('debug');
     });
@@ -396,7 +390,6 @@ export function registerCommandHandlers(
         debugCommand,
         createFromFileCommand,
         openSettingsCommand,
-        generateRunCommandCommand,
         generateDebugCommandCommand,
         generateDebugConfigFromDirectoryCommand,
         helloWorldCommand

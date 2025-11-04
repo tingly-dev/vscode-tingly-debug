@@ -71,6 +71,11 @@
                 "command": "ddd.generateDebugCommand",
                 "title": "ddd: Generate Debug Command from Symbol",
                 "icon": "$(debug)"
+            },
+            {
+                "command": "ddd.generateDebugConfigFromDirectory",
+                "title": "ddd: Generate Debug Configuration from Directory",
+                "icon": "$(debug)"
             }
         ],
         "views": {
@@ -106,14 +111,23 @@
                     "group": "navigation"
                 },
                 {
-                    "command": "ddd.generateRunCommand",
+                    "command": "ddd.generateDebugCommand",
                     "when": "resourceExtname =~ /\\.(js|ts|tsx|jsx|mjs|cjs|py|java|cpp|c|go|rs|php|rb|cs|html|htm|dart|ps1|sh|bash|zsh|fish|lua|ex|exs|kt|kts|scala|sc)$/",
                     "group": "1_symbol@1"
-                },
+                }
+            ],
+            "editor/context": [
                 {
                     "command": "ddd.generateDebugCommand",
                     "when": "resourceExtname =~ /\\.(js|ts|tsx|jsx|mjs|cjs|py|java|cpp|c|go|rs|php|rb|cs|html|htm|dart|ps1|sh|bash|zsh|fish|lua|ex|exs|kt|kts|scala|sc)$/",
-                    "group": "1_symbol@2"
+                    "group": "ddd@1"
+                }
+            ],
+            "explorer/context": [
+                {
+                    "command": "ddd.generateDebugConfigFromDirectory",
+                    "when": "explorerResourceIsFolder",
+                    "group": "ddd@1"
                 }
             ],
             "view/item/context": [
