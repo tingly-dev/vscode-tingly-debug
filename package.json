@@ -3,9 +3,9 @@
     "displayName": "Tingly Debug Configurations",
     "publisher": "FFengIll",
     "description": "A debug and run configuration manager and UI for VS Code",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "engines": {
-        "vscode": "^1.105.0"
+        "vscode": "^1.90.0"
     },
     "repository": {
         "url": "https://github.com/FFengIll/tingly-debug"
@@ -195,7 +195,7 @@
     "devDependencies": {
         "@types/assert": "^1.5.11",
         "@types/mocha": "^10.0.10",
-        "@types/vscode": "^1.105.0",
+        "@types/vscode": "^1.90.0",
         "@types/webpack-env": "^1.18.8",
         "@typescript-eslint/eslint-plugin": "^8.46.2",
         "@typescript-eslint/parser": "^8.46.2",
