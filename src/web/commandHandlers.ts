@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { DebugConfigurationProvider, DebugConfigurationItem } from './debugTreeView';
-import { LaunchConfiguration, LaunchCompound } from './types';
 import { ConfigurationEditor } from './configurationEditor';
-import { FileTypeMapper } from './fileTypeMapper';
-import { SymbolDetector, CommandGenerator, SymbolInfo } from './symbolCommandGenerator';
 import { ConfigurationGenerator, ConfigurationTarget } from './configurationGenerator';
+import { CommandGenerator, SymbolDetector, SymbolInfo } from './debugCommandGenerator';
+import { DebugConfigurationItem, DebugConfigurationProvider } from './debugTreeView';
+import { FileTypeMapper } from './fileTypeMapper';
+import { LaunchConfiguration } from './types';
 
 export function registerCommandHandlers(
     context: vscode.ExtensionContext,
