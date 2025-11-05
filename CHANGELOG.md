@@ -4,6 +4,13 @@ All notable changes to the "ddd" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.1.0] - 2025-11-05
+
+### Changed
+- ✅ Updated command IDs for better consistency and organization
+- ✅ Improved error handling when creating debug configurations from symbols
+- ✅ Enhanced error notifications with channel output for better debugging
+
 ## [0.0.5] - 2025-11-05
 
 ### Added
@@ -20,8 +27,6 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - ✅ Separated configuration generation and debug command generation logic
 - ✅ Improved command handlers structure
 - ✅ Better type definitions and organization
-
-
 
 ## [0.0.2] - 2025-11-04
 

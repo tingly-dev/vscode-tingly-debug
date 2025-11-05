@@ -3,7 +3,7 @@
     "displayName": "Tingly Debug Configurations",
     "publisher": "FFengIll",
     "description": "A debug and run configuration manager and UI for VS Code",
-    "version": "0.0.6",
+    "version": "0.1.0",
     "engines": {
         "vscode": "^1.90.0"
     },
