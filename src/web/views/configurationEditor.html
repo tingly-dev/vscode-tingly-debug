@@ -421,7 +421,7 @@
 
                 <div class="file-input-group">
                     <label for="envFile" style="flex: 0 0 auto; min-width: 80px;">Env File:</label>
-                    <input type="text" id="envFile" name="envFile" placeholder="\${workspaceFolder}/.env">
+                    <input type="text" id="envFile" name="envFile" placeholder="${workspaceFolder}/.env">
                     <button type="button" onclick="browseEnvFile()">Browse</button>
                 </div>
             </div>
@@ -486,7 +486,6 @@
         // Initialize the page with data from extension
         function initializePage(data) {
             try {
-                console.log('Initializing page with data:', data);
 
                 // Store data globally
                 initialConfig = JSON.stringify(data.config, null, 2);
@@ -1074,7 +1073,22 @@
         // Initialize when DOM is ready
         document.addEventListener('DOMContentLoaded', () => {
             debugDomElements();
+
+            // Send ready message to extension to initialize data
+            vscode.postMessage({
+                command: 'ready'
+            });
         });
+
+        // Fallback: if DOM is already loaded, send ready message immediately
+        if (document.readyState === 'loading') {
+            // DOM is still loading, event listener will handle it
+        } else {
+            // DOM is already loaded, send ready message immediately
+            vscode.postMessage({
+                command: 'ready'
+            });
+        }
 
         window.addEventListener('beforeunload', (event) => {
             if (isDirty) {

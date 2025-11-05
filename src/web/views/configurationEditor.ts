@@ -60,11 +60,30 @@ export class ConfigurationEditor {
             // Update the webview content
             panel.webview.html = this.getConfigurationSettingsWebviewContent();
 
-            // Send refresh message
+            // Send initialization data after updating content
             setTimeout(() => {
                 if (panel.visible) {
+                    const webviewData = {
+                        config: {
+                            name: configData.name,
+                            type: configData.type,
+                            request: configData.request,
+                            env: configData.properties.env || {},
+                            envFile: configData.properties.envFile || '',
+                            properties: (() => {
+                                const result = { ...configData.properties };
+                                delete result.env;
+                                delete result.envFile;
+                                return result;
+                            })()
+                        },
+                        commonTypes: this.getCommonConfigurationTypes(),
+                        initialConfig: JSON.stringify(targetConfig, null, 2)
+                    };
+
                     panel.webview.postMessage({
-                        command: 'refreshUI'
+                        command: 'initialize',
+                        data: webviewData
                     });
                 }
             }, 100);
