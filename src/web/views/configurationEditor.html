@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Settings</title>
+    <style>
+        body {
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            color: var(--vscode-foreground);
+            background-color: var(--vscode-editor-background);
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--vscode-panel-border);
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .launch-json-btn, .run-btn, .debug-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            border: 1px solid var(--vscode-button-border);
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            cursor: pointer;
+            border-radius: 3px;
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            transition: background-color 0.2s;
+        }
+        .launch-json-btn:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        .run-btn, .debug-btn {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+        .run-btn:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        .debug-btn:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        .config-info {
+            background-color: var(--vscode-textBlockQuote-background);
+            border-left: 4px solid var(--vscode-textBlockQuote-border);
+            padding: 10px 15px;
+            margin-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--vscode-foreground);
+        }
+        .field-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+        label {
+            flex: 0 0 120px;
+            font-size: 13px;
+            color: var(--vscode-foreground);
+        }
+        input[type="text"], select {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid var(--vscode-input-border);
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+        }
+        input[type="text"]:focus, select:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: -1px;
+        }
+        .hybrid-input {
+            display: flex;
+            gap: 5px;
+            align-items: stretch;
+            flex: 1;
+        }
+        .hybrid-input input[type="text"] {
+            flex: 1;
+        }
+        .hybrid-input select {
+            flex: 0 0 auto;
+            min-width: 130px;
+            max-width: 200px;
+        }
+        .or-divider {
+            color: var(--vscode-foreground);
+            font-size: 12px;
+            padding: 0 5px;
+            display: flex;
+            align-items: center;
+            opacity: 0.7;
+            white-space: nowrap;
+        }
+        .env-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        .env-table th,
+        .env-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid var(--vscode-panel-border);
+        }
+        .env-table th {
+            font-weight: bold;
+            color: var(--vscode-foreground);
+            font-size: 13px;
+        }
+        .env-table input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid var(--vscode-input-border);
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            padding: 4px 6px;
+        }
+        .env-table input[type="text"]:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: -1px;
+        }
+        .env-actions {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+        .env-btn {
+            background: none;
+            border: 1px solid var(--vscode-button-border);
+            color: var(--vscode-button-foreground);
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-family: var(--vscode-font-family);
+        }
+        .env-btn:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        .env-btn.remove {
+            color: var(--vscode-errorForeground);
+            border-color: var(--vscode-errorBorder);
+        }
+        .env-btn.remove:hover {
+            background-color: var(--vscode-errorBackground);
+        }
+        .file-input-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .file-input-group input[type="text"] {
+            flex: 1;
+        }
+        .file-input-group button {
+            flex: 0 0 auto;
+            padding: 6px 12px;
+            border: 1px solid var(--vscode-button-border);
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            cursor: pointer;
+            border-radius: 3px;
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+        }
+        .file-input-group button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        .remove-btn {
+            background: none;
+            border: none;
+            color: var(--vscode-icon-foreground);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 3px;
+            font-size: 16px;
+        }
+        .remove-btn:hover {
+            background-color: var(--vscode-button-secondaryBackground);
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            justify-content: flex-end;
+        }
+        button {
+            padding: 8px 16px;
+            border: 1px solid var(--vscode-button-border);
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            cursor: pointer;
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            border-radius: 3px;
+        }
+        button:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        button.primary {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+        button.secondary {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+        }
+        .add-field-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--vscode-panel-border);
+        }
+        .add-field-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .add-field-group input {
+            flex: 1;
+        }
+        .json-view {
+            margin-top: 20px;
+            background-color: var(--vscode-textBlockQuote-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 4px;
+            padding: 15px;
+            font-family: var(--vscode-editor-font-family);
+            font-size: var(--vscode-editor-font-size);
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .error-message {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: var(--vscode-errorBackground);
+            border: 1px solid var(--vscode-errorBorder);
+            border-radius: 4px;
+            color: var(--vscode-errorForeground);
+            font-size: var(--vscode-font-size);
+            display: none;
+        }
+        .array-field {
+            align-items: flex-start;
+        }
+        .array-badge {
+            font-size: 10px;
+            background-color: var(--vscode-badge-background);
+            color: var(--vscode-badge-foreground);
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 8px;
+            font-weight: normal;
+        }
+        .field-content {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex: 1;
+        }
+        .array-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+        }
+        .array-input-mode {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .array-mode-buttons {
+            display: flex;
+            border: 1px solid var(--vscode-button-border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .array-mode-btn {
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            border: none;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        .array-mode-btn:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        .array-mode-btn.active {
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+        }
+        .array-input-content {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .array-list-input {
+            min-height: 80px;
+            resize: vertical;
+            border: 1px solid var(--vscode-input-border);
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            padding: 6px 8px;
+            border-radius: 3px;
+        }
+        .array-list-input:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: -1px;
+        }
+        .array-single-input {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Configuration Settings</h2>
+            <div class="header-actions">
+                <button type="button" class="launch-json-btn" onclick="openLaunchJson()" title="Open launch.json file">
+                    <span class="codicon codicon-file-json"></span> launch.json
+                </button>
+                <button type="button" class="run-btn" onclick="runConfiguration()" title="Run configuration without breakpoints">
+                    <span class="codicon codicon-play"></span> Run
+                </button>
+                <button type="button" class="debug-btn" onclick="debugConfiguration()" title="Debug configuration with breakpoints">
+                    <span class="codicon codicon-debug-alt"></span> Debug
+                </button>
+            </div>
+        </div>
+
+        <form id="configForm">
+        <div class="section">
+            <div class="section-title">Basic Information</div>
+            <div class="field-group">
+                <label for="configName">Name</label>
+                <input type="text" id="configName" name="name" placeholder="Configuration name">
+            </div>
+            <div class="field-group">
+                <label for="configType">Type</label>
+                <div class="hybrid-input">
+                    <input type="text" id="configType" name="type" placeholder="Enter configuration type..." oninput="clearTypeSelect()">
+                    <div class="or-divider">or</div>
+                    <select id="configTypeSelect" onchange="updateTypeFromSelect()">
+                        <option value="">Select preset...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field-group">
+                <label for="configRequest">Request</label>
+                <div class="hybrid-input">
+                    <input type="text" id="configRequest" name="request" placeholder="Enter request type..." oninput="clearRequestSelect()">
+                    <div class="or-divider">or</div>
+                    <select id="configRequestSelect" onchange="updateRequestFromSelect()">
+                        <option value="">Select preset...</option>
+                        <option value="launch">launch</option>
+                        <option value="attach">attach</option>
+                    </select>
+                </div>
+            </div>
+            <div id="errorMessage" class="error-message"></div>
+        </div>
+
+            <div class="section">
+                <div class="section-title">Environment Variables</div>
+
+                <div style="margin-bottom: 15px;">
+                    <table class="env-table" id="envTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 35%;">Variable Name</th>
+                                <th style="width: 45%;">Value</th>
+                                <th style="width: 20%;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="envTableBody">
+                            <tr id="emptyEnvRow">
+                                <td colspan="3" style="text-align: center; opacity: 0.6; padding: 20px;">No environment variables configured. Click "Add Variable" to get started.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="env-actions">
+                        <button type="button" class="env-btn" onclick="addEnvRow()">➕ Add Variable</button>
+                    </div>
+                </div>
+
+                <div class="file-input-group">
+                    <label for="envFile" style="flex: 0 0 auto; min-width: 80px;">Env File:</label>
+                    <input type="text" id="envFile" name="envFile" placeholder="\${workspaceFolder}/.env">
+                    <button type="button" onclick="browseEnvFile()">Browse</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Configuration Properties</div>
+                <div id="propertiesContainer">
+                </div>
+            </div>
+
+            <div class="add-field-section">
+                <div class="section-title">Add New Property</div>
+                <div class="add-field-group">
+                    <input type="text" id="newPropName" placeholder="Property name">
+                    <input type="text" id="newPropValue" placeholder="Property value">
+                    <button type="button" onclick="addField()">Add Property</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">JSON Preview</div>
+                <div id="jsonPreview" class="json-view"></div>
+            </div>
+
+            <div class="button-group">
+                <button type="button" class="secondary" onclick="cancel()">Cancel</button>
+                <button type="button" class="primary" onclick="saveConfiguration()">Save</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+
+        // Store initial configuration for change detection
+        let initialConfig = '';
+        let isDirty = false;
+        let envRowIndex = 0;
+        let commonTypes = [];
+
+        // Debug function to check if all required DOM elements are present
+        function debugDomElements() {
+            const requiredElements = [
+                'configForm',
+                'jsonPreview',
+                'configName',
+                'configType',
+                'configRequest'
+            ];
+
+            const missingElements = requiredElements.filter(id => !document.getElementById(id));
+
+            if (missingElements.length > 0) {
+                console.error('Missing DOM elements:', missingElements);
+                return false;
+            }
+
+            console.log('All required DOM elements are present');
+            return true;
+        }
+
+        // Initialize the page with data from extension
+        function initializePage(data) {
+            try {
+                console.log('Initializing page with data:', data);
+
+                // Store data globally
+                initialConfig = JSON.stringify(data.config, null, 2);
+                commonTypes = data.commonTypes || [];
+
+                // Populate form fields
+                document.getElementById('configName').value = data.config.name || '';
+                document.getElementById('configType').value = data.config.type || '';
+                document.getElementById('configRequest').value = data.config.request || '';
+
+                // Populate type dropdown
+                populateTypeDropdown();
+
+                // Populate environment variables
+                populateEnvironmentVariables(data.config.env || {});
+
+                // Set env file
+                document.getElementById('envFile').value = data.config.envFile || '';
+
+                // Populate properties
+                populateProperties(data.config.properties || {});
+
+                // Set request dropdown
+                if (['launch', 'attach'].includes(data.config.request)) {
+                    document.getElementById('configRequestSelect').value = data.config.request;
+                }
+
+                // Initialize JSON preview
+                setTimeout(() => {
+                    debugDomElements();
+                    updateJsonPreview();
+                }, 100);
+
+            } catch (error) {
+                console.error('Error initializing page:', error);
+                showError('Failed to initialize configuration editor');
+            }
+        }
+
+        function populateTypeDropdown() {
+            const select = document.getElementById('configTypeSelect');
+            select.innerHTML = '<option value="">Select preset...</option>';
+
+            commonTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                if (type === document.getElementById('configType').value) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+
+        function populateEnvironmentVariables(env) {
+            const tbody = document.getElementById('envTableBody');
+            tbody.innerHTML = '';
+
+            const envEntries = Object.entries(env);
+            envRowIndex = envEntries.length;
+
+            if (envEntries.length === 0) {
+                tbody.innerHTML = '<tr id="emptyEnvRow"><td colspan="3" style="text-align: center; opacity: 0.6; padding: 20px;">No environment variables configured. Click "Add Variable" to get started.</td></tr>';
+            } else {
+                envEntries.forEach(([key, value], index) => {
+                    addEnvRowWithValue(key, value, index);
+                });
+            }
+        }
+
+        function addEnvRowWithValue(key, value, index) {
+            const tbody = document.getElementById('envTableBody');
+            const displayValue = typeof value === 'string' ? value : JSON.stringify(value);
+
+            const row = document.createElement('tr');
+            row.setAttribute('data-index', index);
+            row.innerHTML = `
+                <td>
+                    <input type="text" id="env-key-${index}" name="env-key-${index}" value="${key.replace(/"/g, '&quot;')}" placeholder="Environment variable name">
+                </td>
+                <td>
+                    <input type="text" id="env-value-${index}" name="env-value-${index}" value="${displayValue.replace(/"/g, '&quot;')}" placeholder="Environment variable value">
+                </td>
+                <td class="env-actions">
+                    <button type="button" class="env-btn remove" onclick="removeEnvRow(${index})" title="Remove variable">🗑️</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+
+            // Add event listeners to new inputs
+            row.querySelectorAll('input[type="text"]').forEach(input => {
+                input.addEventListener('input', updateJsonPreview);
+            });
+        }
+
+        function populateProperties(properties) {
+            const container = document.getElementById('propertiesContainer');
+            container.innerHTML = '';
+
+            Object.entries(properties).forEach(([key, value]) => {
+                addPropertyField(key, value);
+            });
+        }
+
+        function addPropertyField(key, value) {
+            const container = document.getElementById('propertiesContainer');
+            const isArray = isArrayProperty(key);
+
+            const fieldDiv = document.createElement('div');
+            fieldDiv.className = 'field-group' + (isArray ? ' array-field' : '');
+
+            let inputHtml;
+
+            if (isArray) {
+                const arrayValues = Array.isArray(value) ? value : [];
+                const listValues = arrayValues.map(item => String(item)).join('\n');
+                const shouldUseListMode = arrayValues.length > 1 || arrayValues.some(item => String(item).length > 30);
+
+                inputHtml = '<div class="array-input-container" id="array-container-' + key + '">' +
+                    '<div class="array-input-mode">' +
+                    '<div class="array-mode-buttons">' +
+                    '<button type="button" class="array-mode-btn ' + (!shouldUseListMode ? 'active' : '') + '"' +
+                    ' onclick="setArrayMode(\'' + key + '\', \'single\')" title="Single line input">' +
+                    '<span class="codicon codicon-symbol-string"></span>' +
+                    '</button>' +
+                    '<button type="button" class="array-mode-btn ' + (shouldUseListMode ? 'active' : '') + '"' +
+                    ' onclick="setArrayMode(\'' + key + '\', \'list\')" title="List input">' +
+                    '<span class="codicon codicon-list-flat"></span>' +
+                    '</button>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="array-input-content">' +
+                    '<input type="text" id="prop-' + key + '" name="' + key + '"' +
+                    ' placeholder="Enter JSON array for ' + key + ' (e.g., [&quot;value1&quot;, &quot;value2&quot;])"' +
+                    ' class="array-single-input"' +
+                    ' style="' + (shouldUseListMode ? 'display: none;' : '') + '"' +
+                    ' oninput="updateJsonPreview()">' +
+                    '<textarea id="prop-' + key + '-list" name="' + key + '-list"' +
+                    ' placeholder="Enter one value per line for ' + key + '"' +
+                    ' class="array-list-input"' +
+                    ' style="' + (shouldUseListMode ? '' : 'display: none;') + '"' +
+                    ' oninput="updateJsonPreviewFromList(\'' + key + '\')">' + escapeHtmlTags(listValues) + '</textarea>' +
+                    '</div>' +
+                    '</div>';
+
+                // Set the single input value
+                if (arrayValues.length > 0) {
+                    setTimeout(() => {
+                        const singleInput = document.getElementById('prop-' + key);
+                        if (singleInput) {
+                            singleInput.value = JSON.stringify(arrayValues);
+                        }
+                    }, 0);
+                }
+            } else {
+                const displayValue = typeof value === 'string' ? value : JSON.stringify(value);
+                inputHtml = '<input type="text" id="prop-' + key + '" name="' + key + '"' +
+                    ' value="' + displayValue.replace(/"/g, '&quot;') + '"' +
+                    ' placeholder="Enter ' + key + '"' +
+                    ' oninput="updateJsonPreview()">';
+            }
+
+            fieldDiv.innerHTML =
+                '<label for="prop-' + key + '">' + key + (isArray ? '<span class="array-badge">Array</span>' : '') + '</label>' +
+                '<div class="field-content">' +
+                inputHtml +
+                '<button type="button" class="remove-btn" onclick="removeField(\'' + key + '\')">🗑️</button>' +
+                '</div>';
+
+            container.appendChild(fieldDiv);
+
+            // Add event listeners
+            fieldDiv.querySelectorAll('input[type="text"], textarea').forEach(input => {
+                input.addEventListener('input', updateJsonPreview);
+            });
+        }
+
+        function isArrayProperty(key) {
+            return ['args', 'outFiles', 'preLaunchTask', 'postDebugTask', 'configurations', 'inputs'].includes(key);
+        }
+
+        function escapeHtmlTags(text) {
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // Array input handling functions
+        function setArrayMode(propertyName, mode) {
+            const singleInput = document.getElementById('prop-' + propertyName);
+            const listInput = document.getElementById('prop-' + propertyName + '-list');
+            const singleBtn = document.querySelector('#array-container-' + propertyName + ' .array-mode-btn:first-child');
+            const listBtn = document.querySelector('#array-container-' + propertyName + ' .array-mode-btn:last-child');
+
+            if (mode === 'single') {
+                if (listInput && singleInput) {
+                    const listValue = listInput.value.trim();
+                    if (listValue) {
+                        const arrayValue = listValue.split('\n')
+                            .map(line => line.trim())
+                            .filter(line => line.length > 0)
+                            .map(line => {
+                                try {
+                                    return JSON.parse(line);
+                                } catch {
+                                    return line;
+                                }
+                            });
+                        singleInput.value = JSON.stringify(arrayValue);
+                    } else {
+                        singleInput.value = '[]';
+                    }
+                }
+
+                if (singleInput) singleInput.style.display = 'block';
+                if (listInput) listInput.style.display = 'none';
+                if (singleBtn) singleBtn.classList.add('active');
+                if (listBtn) listBtn.classList.remove('active');
+            } else if (mode === 'list') {
+                if (singleInput && listInput) {
+                    const singleValue = singleInput.value.trim();
+                    if (singleValue) {
+                        try {
+                            const arrayValue = JSON.parse(singleValue);
+                            if (Array.isArray(arrayValue)) {
+                                listInput.value = arrayValue.map(item => String(item)).join('\n');
+                            } else {
+                                listInput.value = String(arrayValue);
+                            }
+                        } catch {
+                            const arrayValue = singleValue.split(',').map(item => item.trim()).filter(item => item);
+                            listInput.value = arrayValue.join('\n');
+                        }
+                    }
+                }
+
+                if (singleInput) singleInput.style.display = 'none';
+                if (listInput) listInput.style.display = 'block';
+                if (singleBtn) singleBtn.classList.remove('active');
+                if (listBtn) listBtn.classList.add('active');
+            }
+
+            updateJsonPreview();
+        }
+
+        function updateJsonPreviewFromList(propertyName) {
+            const listInput = document.getElementById('prop-' + propertyName + '-list');
+            const singleInput = document.getElementById('prop-' + propertyName);
+
+            if (listInput && singleInput) {
+                const listValue = listInput.value.trim();
+                if (listValue) {
+                    const arrayValue = listValue.split('\n')
+                        .map(line => line.trim())
+                        .filter(line => line.length > 0)
+                        .map(line => {
+                            try {
+                                return JSON.parse(line);
+                            } catch {
+                                return line;
+                            }
+                        });
+                    singleInput.value = JSON.stringify(arrayValue);
+                } else {
+                    singleInput.value = '[]';
+                }
+            }
+
+            updateJsonPreview();
+        }
+
+        function updateTypeFromSelect() {
+            const select = document.getElementById('configTypeSelect');
+            const input = document.getElementById('configType');
+
+            if (select.value) {
+                input.value = select.value;
+            }
+            updateJsonPreview();
+        }
+
+        function updateRequestFromSelect() {
+            const select = document.getElementById('configRequestSelect');
+            const input = document.getElementById('configRequest');
+
+            if (select.value) {
+                input.value = select.value;
+            }
+            updateJsonPreview();
+        }
+
+        function clearTypeSelect() {
+            document.getElementById('configTypeSelect').value = '';
+        }
+
+        function clearRequestSelect() {
+            document.getElementById('configRequestSelect').value = '';
+        }
+
+        function addEnvRow() {
+            const tbody = document.getElementById('envTableBody');
+
+            const emptyRow = document.getElementById('emptyEnvRow');
+            if (emptyRow) {
+                emptyRow.remove();
+            }
+
+            const index = envRowIndex++;
+            addEnvRowWithValue('', '', index);
+
+            document.getElementById(`env-key-${index}`).focus();
+            updateJsonPreview();
+        }
+
+        function removeEnvRow(index) {
+            const row = document.querySelector(`#env-key-${index}`)?.closest('tr');
+            if (row) {
+                row.remove();
+
+                const tbody = document.getElementById('envTableBody');
+                if (tbody.children.length === 0) {
+                    tbody.innerHTML = '<tr id="emptyEnvRow"><td colspan="3" style="text-align: center; opacity: 0.6; padding: 20px;">No environment variables configured. Click "Add Variable" to get started.</td></tr>';
+                }
+
+                updateJsonPreview();
+            }
+        }
+
+        function browseEnvFile() {
+            const currentValue = document.getElementById('envFile').value;
+            vscode.postMessage({
+                command: 'browseEnvFile',
+                currentPath: currentValue || '${workspaceFolder}/.env'
+            });
+        }
+
+        function getEnvObject() {
+            const env = {};
+            const envInputs = document.querySelectorAll('[id^="env-key-"]');
+
+            envInputs.forEach(input => {
+                const key = input.value.trim();
+                const index = input.id.split('-')[2];
+                const valueInput = document.getElementById(`env-value-${index}`);
+                const value = valueInput ? valueInput.value.trim() : '';
+
+                if (key) {
+                    env[key] = value;
+                }
+            });
+
+            return env;
+        }
+
+        function checkForChanges() {
+            const currentConfig = getCurrentFormConfig();
+            const currentConfigJson = JSON.stringify(currentConfig, null, 2);
+            const hasChanges = currentConfigJson !== initialConfig;
+
+            isDirty = hasChanges;
+
+            if (hasChanges) {
+                document.title = document.title.replace(/^[●]?\s*/, '● ');
+            } else {
+                document.title = document.title.replace(/^[●]\s*/, '');
+            }
+        }
+
+        function getCurrentFormConfig() {
+            try {
+                const form = document.getElementById('configForm');
+                if (!form) {
+                    console.error('Form element not found');
+                    return {};
+                }
+
+                const formData = new FormData(form);
+                const config = {};
+
+                for (let [key, value] of formData.entries()) {
+                    if (key && !key.startsWith('env-') && !key.endsWith('-list')) {
+                        const isArrayField = isArrayProperty(key);
+
+                        if (isArrayField) {
+                            const actualValue = getArrayFieldValue(key);
+                            config[key] = actualValue;
+                        } else {
+                            try {
+                                config[key] = JSON.parse(value);
+                            } catch {
+                                config[key] = value;
+                            }
+                        }
+                    }
+                }
+
+                const env = getEnvObject();
+                if (Object.keys(env).length > 0) {
+                    config.env = env;
+                }
+
+                const envFileInput = document.getElementById('envFile');
+                if (envFileInput) {
+                    const envFile = envFileInput.value.trim();
+                    if (envFile) {
+                        config.envFile = envFile;
+                    }
+                }
+
+                return config;
+            } catch (error) {
+                console.error('Error getting form configuration:', error);
+                return {};
+            }
+        }
+
+        function getArrayFieldValue(key) {
+            const singleInput = document.getElementById('prop-' + key);
+            const listInput = document.getElementById('prop-' + key + '-list');
+
+            if (!singleInput) return [];
+
+            const isListMode = listInput && listInput.style.display !== 'none';
+
+            if (isListMode && listInput) {
+                const listValue = listInput.value.trim();
+                if (!listValue) return [];
+
+                return listValue.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0)
+                    .map(line => {
+                        try {
+                            return JSON.parse(line);
+                        } catch {
+                            return line;
+                        }
+                    });
+            } else {
+                const singleValue = singleInput.value.trim();
+                if (!singleValue) return [];
+
+                try {
+                    const parsed = JSON.parse(singleValue);
+                    return Array.isArray(parsed) ? parsed : [parsed];
+                } catch {
+                    return singleValue.split(',').map(item => {
+                        const trimmed = item.trim();
+                        try {
+                            return JSON.parse(trimmed);
+                        } catch {
+                            return trimmed;
+                        }
+                    });
+                }
+            }
+        }
+
+        function updateJsonPreview() {
+            try {
+                const config = getCurrentFormConfig();
+                const jsonString = JSON.stringify(config, null, 2);
+                const previewElement = document.getElementById('jsonPreview');
+
+                if (previewElement) {
+                    previewElement.textContent = jsonString;
+                    checkForChanges();
+                } else {
+                    setTimeout(updateJsonPreview, 50);
+                }
+            } catch (error) {
+                console.error('Error updating JSON preview:', error);
+                const previewElement = document.getElementById('jsonPreview');
+                if (previewElement) {
+                    previewElement.textContent = 'Error generating JSON preview: ' + (error instanceof Error ? error.message : String(error));
+                }
+            }
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        function hideError() {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.style.display = 'none';
+        }
+
+        function addField() {
+            const name = document.getElementById('newPropName').value.trim();
+            const value = document.getElementById('newPropValue').value.trim();
+
+            if (!name) {
+                alert('Please enter a property name');
+                return;
+            }
+
+            addPropertyField(name, value);
+
+            document.getElementById('newPropName').value = '';
+            document.getElementById('newPropValue').value = '';
+
+            updateJsonPreview();
+        }
+
+        function removeField(fieldName) {
+            const field = document.querySelector('input[name="' + fieldName + '"]');
+            if (field && field.parentElement) {
+                field.parentElement.remove();
+                updateJsonPreview();
+            }
+        }
+
+        function saveConfiguration() {
+            hideError();
+            const config = getCurrentFormConfig();
+            vscode.postMessage({
+                command: 'saveConfiguration',
+                config: config
+            });
+        }
+
+        function cancel() {
+            if (isDirty) {
+                const result = confirm('You have unsaved changes. Are you sure you want to close without saving?');
+                if (!result) {
+                    return;
+                }
+            }
+            vscode.postMessage({
+                command: 'cancel'
+            });
+        }
+
+        function runConfiguration() {
+            hideError();
+            const config = getCurrentFormConfig();
+            vscode.postMessage({
+                command: 'runConfiguration',
+                config: config
+            });
+        }
+
+        function openLaunchJson() {
+            vscode.postMessage({
+                command: 'openLaunchJson'
+            });
+        }
+
+        function debugConfiguration() {
+            hideError();
+            const config = getCurrentFormConfig();
+            vscode.postMessage({
+                command: 'debugConfiguration',
+                config: config
+            });
+        }
+
+        // Listen for messages from the extension
+        window.addEventListener('message', event => {
+            const message = event.data;
+            switch (message.command) {
+                case 'initialize':
+                    initializePage(message.data);
+                    break;
+                case 'showError':
+                    showError(message.message);
+                    break;
+                case 'setEnvFile':
+                    document.getElementById('envFile').value = message.path;
+                    updateJsonPreview();
+                    break;
+                case 'showEnvFileError':
+                    showError(message.message);
+                    break;
+                case 'refreshUI':
+                    setTimeout(() => {
+                        debugDomElements();
+                        updateJsonPreview();
+                    }, 100);
+                    break;
+            }
+        });
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            debugDomElements();
+        });
+
+        window.addEventListener('beforeunload', (event) => {
+            if (isDirty) {
+                event.preventDefault();
+                event.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html>
