@@ -68,12 +68,20 @@ export class ConfigurationEditor {
                             name: configData.name,
                             type: configData.type,
                             request: configData.request,
+                            console: configData.properties.console,
+                            internalConsoleOptions: configData.properties.internalConsoleOptions,
+                            preLaunchTask: configData.properties.preLaunchTask,
+                            postDebugTask: configData.properties.postDebugTask,
                             env: configData.properties.env || {},
                             envFile: configData.properties.envFile || '',
                             properties: (() => {
                                 const result = { ...configData.properties };
                                 delete result.env;
                                 delete result.envFile;
+                                delete result.console;
+                                delete result.internalConsoleOptions;
+                                delete result.preLaunchTask;
+                                delete result.postDebugTask;
                                 return result;
                             })()
                         },
@@ -347,12 +355,20 @@ export class ConfigurationEditor {
                                     name: configData.name,
                                     type: configData.type,
                                     request: configData.request,
+                                    console: configData.properties.console,
+                                    internalConsoleOptions: configData.properties.internalConsoleOptions,
+                                    preLaunchTask: configData.properties.preLaunchTask,
+                                    postDebugTask: configData.properties.postDebugTask,
                                     env: configData.properties.env || {},
                                     envFile: configData.properties.envFile || '',
                                     properties: (() => {
                                         const result = { ...configData.properties };
                                         delete result.env;
                                         delete result.envFile;
+                                        delete result.console;
+                                        delete result.internalConsoleOptions;
+                                        delete result.preLaunchTask;
+                                        delete result.postDebugTask;
                                         return result;
                                     })()
                                 },

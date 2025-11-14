@@ -70,6 +70,9 @@
             font-weight: bold;
             margin-bottom: 15px;
             color: var(--vscode-foreground);
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
         }
         .field-group {
             display: flex;
@@ -345,6 +348,78 @@
         .array-single-input {
             width: 100%;
         }
+        .enhanced-select {
+            background-color: var(--vscode-dropdown-background);
+            color: var(--vscode-dropdown-foreground);
+            border: 1px solid var(--vscode-dropdown-border);
+            padding: 6px 8px;
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            border-radius: 3px;
+        }
+        .enhanced-select:hover {
+            background-color: var(--vscode-button-hoverBackground);
+        }
+        .enhanced-select:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: -1px;
+        }
+        .field-description {
+            font-size: 11px;
+            color: var(--vscode-descriptionForeground);
+            margin-top: 4px;
+            margin-left: 2px;
+            opacity: 0.8;
+        }
+        .help-icon {
+            color: var(--vscode-descriptionForeground);
+            cursor: pointer;
+            margin-left: 6px;
+            font-size: 12px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            position: relative;
+        }
+        .help-icon:hover {
+            opacity: 1;
+        }
+        .help-popup {
+            position: fixed;
+            background-color: var(--vscode-editorWidget-background);
+            border: 1px solid var(--vscode-editorWidget-border);
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 11px;
+            color: var(--vscode-editorWidget-foreground);
+            max-width: 300px;
+            white-space: normal;
+            word-wrap: break-word;
+            z-index: 9999;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            line-height: 1.4;
+        }
+        .help-popup.visible {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        .field-group-with-help {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+        .field-group-with-help label {
+            flex: 0 0 120px;
+            font-size: 13px;
+            color: var(--vscode-foreground);
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -367,37 +442,148 @@
         <form id="configForm">
         <div class="section">
             <div class="section-title">Basic Information</div>
-            <div class="field-group">
-                <label for="configName">Name</label>
-                <input type="text" id="configName" name="name" placeholder="Configuration name">
-            </div>
-            <div class="field-group">
-                <label for="configType">Type</label>
-                <div class="hybrid-input">
-                    <input type="text" id="configType" name="type" placeholder="Enter configuration type..." oninput="clearTypeSelect()">
-                    <div class="or-divider">or</div>
-                    <select id="configTypeSelect" onchange="updateTypeFromSelect()">
-                        <option value="">Select preset...</option>
-                    </select>
+            <div class="field-group-with-help">
+                <label for="configName">
+                    Name
+                    <span class="help-icon" onclick="toggleHelp(event, 'name')">ⓘ
+                        <div class="help-popup" id="help-name">The reader-friendly name to appear in the Debug launch configuration dropdown. This should be descriptive and unique.</div>
+                    </span>
+                </label>
+                <div style="flex: 1;">
+                    <input type="text" id="configName" name="name" placeholder="Configuration name">
                 </div>
             </div>
-            <div class="field-group">
-                <label for="configRequest">Request</label>
-                <div class="hybrid-input">
-                    <input type="text" id="configRequest" name="request" placeholder="Enter request type..." oninput="clearRequestSelect()">
-                    <div class="or-divider">or</div>
-                    <select id="configRequestSelect" onchange="updateRequestFromSelect()">
-                        <option value="">Select preset...</option>
-                        <option value="launch">launch</option>
-                        <option value="attach">attach</option>
-                    </select>
+            <div class="field-group-with-help">
+                <label for="configType">
+                    Type
+                    <span class="help-icon" onclick="toggleHelp(event, 'type')">ⓘ
+                        <div class="help-popup" id="help-type">The type of debugger to use. Every installed debug extension introduces a type (e.g., node for Node.js, python for Python, chrome for Chrome debugging).</div>
+                    </span>
+                </label>
+                <div style="flex: 1;">
+                    <div class="hybrid-input">
+                        <input type="text" id="configType" name="type" placeholder="Enter configuration type..." oninput="clearTypeSelect()">
+                        <div class="or-divider">or</div>
+                        <select id="configTypeSelect" onchange="updateTypeFromSelect()" class="enhanced-select">
+                            <option value="">Select preset...</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="field-group-with-help">
+                <label for="configRequest">
+                    Request
+                    <span class="help-icon" onclick="toggleHelp(event, 'request')">ⓘ
+                        <div class="help-popup" id="help-request">The request type of this launch configuration. Currently supports 'launch' to start a new process or 'attach' to connect to a running process.</div>
+                    </span>
+                </label>
+                <div style="flex: 1;">
+                    <div class="hybrid-input">
+                        <input type="text" id="configRequest" name="request" placeholder="Enter request type..." oninput="clearRequestSelect()">
+                        <div class="or-divider">or</div>
+                        <select id="configRequestSelect" onchange="updateRequestFromSelect()" class="enhanced-select">
+                            <option value="">Select preset...</option>
+                            <option value="launch">🚀 Launch - Start a new process</option>
+                            <option value="attach">🔗 Attach - Connect to running process</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="field-group-with-help">
+                <label for="configConsole">
+                    Console
+                    <span class="help-icon" onclick="toggleHelp(event, 'console')">ⓘ
+                        <div class="help-popup" id="help-console">What kind of console to use for the debug session. Options: internalConsole (VSCode debug console), integratedTerminal (VSCode terminal), or externalTerminal (system terminal).</div>
+                    </span>
+                </label>
+                <div style="flex: 1;">
+                    <div class="hybrid-input">
+                        <input type="text" id="configConsole" name="console" placeholder="Enter console type..." oninput="clearConsoleSelect()">
+                        <div class="or-divider">or</div>
+                        <select id="configConsoleSelect" onchange="updateConsoleFromSelect()" class="enhanced-select">
+                            <option value="">Select preset...</option>
+                            <option value="internalConsole">📟 Internal Console - VSCode debug console</option>
+                            <option value="integratedTerminal">💻 Integrated Terminal - VSCode terminal</option>
+                            <option value="externalTerminal">🖥️ External Terminal - System terminal</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="field-group-with-help">
+                <label for="configInternalConsole">
+                    Internal Console
+                    <span class="help-icon" onclick="toggleHelp(event, 'internalConsole')">ⓘ
+                        <div class="help-popup" id="help-internalConsole">Controls the visibility of the Debug console panel during a debugging session. Options: neverOpen, openOnSessionStart, or openOnFirstSessionStart.</div>
+                    </span>
+                </label>
+                <div style="flex: 1;">
+                    <div class="hybrid-input">
+                        <input type="text" id="configInternalConsole" name="internalConsoleOptions" placeholder="Enter internal console option..." oninput="clearInternalConsoleSelect()">
+                        <div class="or-divider">or</div>
+                        <select id="configInternalConsoleSelect" onchange="updateInternalConsoleFromSelect()" class="enhanced-select">
+                            <option value="">Select preset...</option>
+                            <option value="neverOpen">❌ Never Open - Don't open debug console</option>
+                            <option value="openOnSessionStart">🔄 Open on Start - Open when debugging starts</option>
+                            <option value="openOnFirstSessionStart">🔔 Open on First Start - Open for first debug session</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="field-group-with-help">
+                <label for="configPreLaunchTask">
+                    Pre-Launch Task
+                    <span class="help-icon" onclick="toggleHelp(event, 'preLaunchTask')">ⓘ
+                        <div class="help-popup" id="help-preLaunchTask">Task to run before the start of a debug session. Set to the label of a task specified in tasks.json or use ${defaultBuildTask} for your default build task.</div>
+                    </span>
+                </label>
+                <div style="flex: 1;">
+                    <div class="hybrid-input">
+                        <input type="text" id="configPreLaunchTask" name="preLaunchTask" placeholder="Enter task name or ${defaultBuildTask}..." oninput="clearPreLaunchTaskSelect()">
+                        <div class="or-divider">or</div>
+                        <select id="configPreLaunchTaskSelect" onchange="updatePreLaunchTaskFromSelect()" class="enhanced-select">
+                            <option value="">Select preset...</option>
+                            <option value="${defaultBuildTask}">🔨 Default Build Task</option>
+                            <option value="npm: build">📦 NPM: Build</option>
+                            <option value="npm: compile">📝 NPM: Compile</option>
+                            <option value="npm: test">🧪 NPM: Test</option>
+                            <option value="gradle: build">🐘 Gradle: Build</option>
+                            <option value="cargo: build">🦀 Cargo: Build</option>
+                            <option value="make: all">⚙️ Make: All</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="field-group-with-help">
+                <label for="configPostDebugTask">
+                    Post-Debug Task
+                    <span class="help-icon" onclick="toggleHelp(event, 'postDebugTask')">ⓘ
+                        <div class="help-popup" id="help-postDebugTask">Task to run at the very end of a debug session. Set to the label of a task specified in tasks.json for cleanup or post-processing.</div>
+                    </span>
+                </label>
+                <div style="flex: 1;">
+                    <div class="hybrid-input">
+                        <input type="text" id="configPostDebugTask" name="postDebugTask" placeholder="Enter task name..." oninput="clearPostDebugTaskSelect()">
+                        <div class="or-divider">or</div>
+                        <select id="configPostDebugTaskSelect" onchange="updatePostDebugTaskFromSelect()" class="enhanced-select">
+                            <option value="">Select preset...</option>
+                            <option value="npm: clean">🧹 NPM: Clean</option>
+                            <option value="npm: lint">🔍 NPM: Lint</option>
+                            <option value="npm: coverage">📊 NPM: Coverage</option>
+                            <option value="docker: stop">🐳 Docker: Stop</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <div id="errorMessage" class="error-message"></div>
         </div>
 
-            <div class="section">
-                <div class="section-title">Environment Variables</div>
+        <div class="section">
+            <div class="section-title">
+                Environment Variables
+                <span class="help-icon" onclick="toggleHelp(event, 'environment')" style="margin-left: 10px;">ⓘ
+                    <div class="help-popup" id="help-environment">Environment variables for the debug session. You can set key-value pairs or use envFile to load variables from a .env file. These variables are available to your program during debugging.</div>
+                </span>
+            </div>
 
                 <div style="margin-bottom: 15px;">
                     <table class="env-table" id="envTable">
@@ -427,7 +613,12 @@
             </div>
 
             <div class="section">
-                <div class="section-title">Configuration Properties</div>
+                <div class="section-title">
+                Configuration Properties
+                <span class="help-icon" onclick="toggleHelp(event, 'properties')" style="margin-left: 10px;">ⓘ
+                    <div class="help-popup" id="help-properties">Additional properties specific to your debugger type. Common properties include: program (executable), args (arguments), cwd (working directory), port (for attach), and many debugger-specific options.</div>
+                </span>
+            </div>
                 <div id="propertiesContainer">
                 </div>
             </div>
@@ -495,6 +686,10 @@
                 document.getElementById('configName').value = data.config.name || '';
                 document.getElementById('configType').value = data.config.type || '';
                 document.getElementById('configRequest').value = data.config.request || '';
+                document.getElementById('configConsole').value = data.config.console || '';
+                document.getElementById('configInternalConsole').value = data.config.internalConsoleOptions || '';
+                document.getElementById('configPreLaunchTask').value = data.config.preLaunchTask || '';
+                document.getElementById('configPostDebugTask').value = data.config.postDebugTask || '';
 
                 // Populate type dropdown
                 populateTypeDropdown();
@@ -513,6 +708,16 @@
                     document.getElementById('configRequestSelect').value = data.config.request;
                 }
 
+                // Set console dropdown
+                if (['internalConsole', 'integratedTerminal', 'externalTerminal'].includes(data.config.console)) {
+                    document.getElementById('configConsoleSelect').value = data.config.console;
+                }
+
+                // Set internal console dropdown
+                if (['neverOpen', 'openOnSessionStart', 'openOnFirstSessionStart'].includes(data.config.internalConsoleOptions)) {
+                    document.getElementById('configInternalConsoleSelect').value = data.config.internalConsoleOptions;
+                }
+
                 // Initialize JSON preview
                 setTimeout(() => {
                     debugDomElements();
@@ -529,10 +734,35 @@
             const select = document.getElementById('configTypeSelect');
             select.innerHTML = '<option value="">Select preset...</option>';
 
+            const typeDescriptions = {
+                'node': '🟢 Node.js - JavaScript/TypeScript debugging',
+                'node-terminal': '💻 Node.js Terminal - Debug in terminal',
+                'python': '🐍 Python - Python debugging',
+                'java': '☕ Java - Java debugging',
+                'cppdbg': '⚙️ C++ (GDB) - C++ debugging with GDB',
+                'cppvsdbg': '🔧 C++ (VS) - C++ debugging with Visual Studio',
+                'chrome': '🌐 Chrome - Chrome browser debugging',
+                'firefox': '🦊 Firefox - Firefox browser debugging',
+                'msedge': '📘 Edge - Microsoft Edge debugging',
+                'coreclr': '🔷 .NET Core - .NET Core debugging',
+                'dart': '🎯 Dart - Dart language debugging',
+                'go': '🐹 Go - Go language debugging',
+                'php': '🐘 PHP - PHP debugging',
+                'ruby': '💎 Ruby - Ruby debugging',
+                'lua': '🌙 Lua - Lua debugging',
+                'rust': '🦀 Rust - Rust debugging',
+                'elm': '🌳 Elm - Elm language debugging',
+                'mock': '🎭 Mock - Mock debug adapter for testing',
+                'pwa-node': '📱 PWA Node - Progressive Web App Node debugging',
+                'pwa-chrome': '📱 PWA Chrome - Progressive Web App Chrome debugging',
+                'pwa-msedge': '📱 PWA Edge - Progressive Web App Edge debugging',
+                'node2': '🟢 Node.js 2 - Alternative Node.js debugging'
+            };
+
             commonTypes.forEach(type => {
                 const option = document.createElement('option');
                 option.value = type;
-                option.textContent = type;
+                option.textContent = typeDescriptions[type] || type;
                 if (type === document.getElementById('configType').value) {
                     option.selected = true;
                 }
@@ -783,6 +1013,142 @@
             document.getElementById('configRequestSelect').value = '';
         }
 
+        function updateConsoleFromSelect() {
+            const select = document.getElementById('configConsoleSelect');
+            const input = document.getElementById('configConsole');
+
+            if (select.value) {
+                input.value = select.value;
+            }
+            updateJsonPreview();
+        }
+
+        function clearConsoleSelect() {
+            document.getElementById('configConsoleSelect').value = '';
+        }
+
+        function updateInternalConsoleFromSelect() {
+            const select = document.getElementById('configInternalConsoleSelect');
+            const input = document.getElementById('configInternalConsole');
+
+            if (select.value) {
+                input.value = select.value;
+            }
+            updateJsonPreview();
+        }
+
+        function clearInternalConsoleSelect() {
+            document.getElementById('configInternalConsoleSelect').value = '';
+        }
+
+        function updatePreLaunchTaskFromSelect() {
+            const select = document.getElementById('configPreLaunchTaskSelect');
+            const input = document.getElementById('configPreLaunchTask');
+
+            if (select.value) {
+                input.value = select.value;
+            }
+            updateJsonPreview();
+        }
+
+        function clearPreLaunchTaskSelect() {
+            document.getElementById('configPreLaunchTaskSelect').value = '';
+        }
+
+        function updatePostDebugTaskFromSelect() {
+            const select = document.getElementById('configPostDebugTaskSelect');
+            const input = document.getElementById('configPostDebugTask');
+
+            if (select.value) {
+                input.value = select.value;
+            }
+            updateJsonPreview();
+        }
+
+        function clearPostDebugTaskSelect() {
+            document.getElementById('configPostDebugTaskSelect').value = '';
+        }
+
+        function toggleHelp(event, fieldName) {
+            event.stopPropagation();
+
+            // Hide all other help popups first
+            document.querySelectorAll('.help-popup.visible').forEach(popup => {
+                if (popup.id !== `help-${fieldName}`) {
+                    popup.classList.remove('visible');
+                }
+            });
+
+            const popup = document.getElementById(`help-${fieldName}`);
+            if (popup) {
+                // Position the popup
+                const rect = event.target.getBoundingClientRect();
+                popup.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+                popup.style.left = (rect.left + rect.width / 2) + 'px';
+                popup.style.transform = 'translateX(-50%)';
+
+                popup.classList.toggle('visible');
+            }
+        }
+
+        // Hide all help popups when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.help-icon')) {
+                document.querySelectorAll('.help-popup.visible').forEach(popup => {
+                    popup.classList.remove('visible');
+                });
+            }
+        });
+
+        // Hide all help popups on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.help-popup.visible').forEach(popup => {
+                    popup.classList.remove('visible');
+                });
+            }
+        });
+
+        // Add hover functionality for help icons
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.help-icon').forEach(icon => {
+                icon.addEventListener('mouseenter', function(e) {
+                    const fieldName = this.getAttribute('onclick').match(/'([^']+)'/)[1];
+                    const popup = document.getElementById(`help-${fieldName}`);
+                    if (popup) {
+                        // Position the popup
+                        const rect = this.getBoundingClientRect();
+                        popup.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+                        popup.style.left = (rect.left + rect.width / 2) + 'px';
+                        popup.style.transform = 'translateX(-50%)';
+
+                        popup.classList.add('visible');
+                    }
+                });
+
+                icon.addEventListener('mouseleave', function(e) {
+                    const fieldName = this.getAttribute('onclick').match(/'([^']+)'/)[1];
+                    const popup = document.getElementById(`help-${fieldName}`);
+                    if (popup) {
+                        setTimeout(() => {
+                            popup.classList.remove('visible');
+                        }, 100);
+                    }
+                });
+            });
+
+            // Keep popup open when hovering over it
+            document.querySelectorAll('.help-popup').forEach(popup => {
+                popup.addEventListener('mouseenter', function() {
+                    this.classList.add('visible');
+                });
+
+                popup.addEventListener('mouseleave', function() {
+                    this.classList.remove('visible');
+                });
+            });
+        });
+
         function addEnvRow() {
             const tbody = document.getElementById('envTableBody');
 
@@ -1021,6 +1387,10 @@
             document.getElementById('configName').value = data.name || '';
             document.getElementById('configType').value = data.type || '';
             document.getElementById('configRequest').value = data.request || '';
+            document.getElementById('configConsole').value = data.console || '';
+            document.getElementById('configInternalConsole').value = data.internalConsoleOptions || '';
+            document.getElementById('configPreLaunchTask').value = data.preLaunchTask || '';
+            document.getElementById('configPostDebugTask').value = data.postDebugTask || '';
 
             // Reset type dropdown
             if (data.type && commonTypes.includes(data.type)) {
@@ -1034,6 +1404,20 @@
                 document.getElementById('configRequestSelect').value = data.request;
             } else {
                 document.getElementById('configRequestSelect').value = '';
+            }
+
+            // Reset console dropdown
+            if (['internalConsole', 'integratedTerminal', 'externalTerminal'].includes(data.console)) {
+                document.getElementById('configConsoleSelect').value = data.console;
+            } else {
+                document.getElementById('configConsoleSelect').value = '';
+            }
+
+            // Reset internal console dropdown
+            if (['neverOpen', 'openOnSessionStart', 'openOnFirstSessionStart'].includes(data.internalConsoleOptions)) {
+                document.getElementById('configInternalConsoleSelect').value = data.internalConsoleOptions;
+            } else {
+                document.getElementById('configInternalConsoleSelect').value = '';
             }
 
             // Reset environment variables
