@@ -388,6 +388,19 @@ export class ConfigurationEditor {
                             });
                         }
                         break;
+                    case 'resetConfiguration':
+                        // Close current panel and reopen the configuration
+                        try {
+                            const targetConfig = await this.getConfigurationFromProvider(message.configName, provider);
+                            if (targetConfig) {
+                                await this.openConfigurationEditor(targetConfig, provider);
+                            } else {
+                                vscode.window.showErrorMessage(`Configuration "${message.configName}" not found for reset`);
+                            }
+                        } catch (error) {
+                            vscode.window.showErrorMessage(`Failed to reset configuration: ${error}`);
+                        }
+                        break;
                 }
             },
             undefined,

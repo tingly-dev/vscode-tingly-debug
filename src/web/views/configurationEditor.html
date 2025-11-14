@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
     <title>Configuration Settings</title>
     <style>
         body {
@@ -13,10 +17,12 @@
             padding: 20px;
             margin: 0;
         }
+
         .container {
             max-width: 800px;
             margin: 0 auto;
         }
+
         .header {
             margin-bottom: 20px;
             border-bottom: 1px solid var(--vscode-panel-border);
@@ -25,11 +31,15 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .header-actions {
             display: flex;
             gap: 8px;
         }
-        .launch-json-btn, .run-btn, .debug-btn {
+
+        .launch-json-btn,
+        .run-btn,
+        .debug-btn {
             display: flex;
             align-items: center;
             gap: 4px;
@@ -43,28 +53,36 @@
             font-size: var(--vscode-font-size);
             transition: background-color 0.2s;
         }
+
         .launch-json-btn:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
-        .run-btn, .debug-btn {
+
+        .run-btn,
+        .debug-btn {
             background-color: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
         }
+
         .run-btn:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
+
         .debug-btn:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
+
         .config-info {
             background-color: var(--vscode-textBlockQuote-background);
             border-left: 4px solid var(--vscode-textBlockQuote-border);
             padding: 10px 15px;
             margin-bottom: 20px;
         }
+
         .section {
             margin-bottom: 25px;
         }
+
         .section-title {
             font-size: 14px;
             font-weight: bold;
@@ -74,18 +92,22 @@
             align-items: center;
             flex-wrap: wrap;
         }
+
         .field-group {
             display: flex;
             align-items: center;
             margin-bottom: 10px;
             gap: 10px;
         }
+
         label {
             flex: 0 0 120px;
             font-size: 13px;
             color: var(--vscode-foreground);
         }
-        input[type="text"], select {
+
+        input[type="text"],
+        select {
             flex: 1;
             padding: 6px 8px;
             border: 1px solid var(--vscode-input-border);
@@ -94,24 +116,30 @@
             font-family: var(--vscode-font-family);
             font-size: var(--vscode-font-size);
         }
-        input[type="text"]:focus, select:focus {
+
+        input[type="text"]:focus,
+        select:focus {
             outline: 1px solid var(--vscode-focusBorder);
             outline-offset: -1px;
         }
+
         .hybrid-input {
             display: flex;
             gap: 5px;
             align-items: stretch;
             flex: 1;
         }
+
         .hybrid-input input[type="text"] {
             flex: 1;
         }
+
         .hybrid-input select {
             flex: 0 0 auto;
             min-width: 130px;
             max-width: 200px;
         }
+
         .or-divider {
             color: var(--vscode-foreground);
             font-size: 12px;
@@ -121,22 +149,26 @@
             opacity: 0.7;
             white-space: nowrap;
         }
+
         .env-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 15px;
         }
+
         .env-table th,
         .env-table td {
             padding: 8px;
             text-align: left;
             border-bottom: 1px solid var(--vscode-panel-border);
         }
+
         .env-table th {
             font-weight: bold;
             color: var(--vscode-foreground);
             font-size: 13px;
         }
+
         .env-table input[type="text"] {
             width: 100%;
             box-sizing: border-box;
@@ -147,15 +179,18 @@
             font-size: var(--vscode-font-size);
             padding: 4px 6px;
         }
+
         .env-table input[type="text"]:focus {
             outline: 1px solid var(--vscode-focusBorder);
             outline-offset: -1px;
         }
+
         .env-actions {
             display: flex;
             gap: 5px;
             justify-content: center;
         }
+
         .env-btn {
             background: none;
             border: 1px solid var(--vscode-button-border);
@@ -166,25 +201,31 @@
             font-size: 12px;
             font-family: var(--vscode-font-family);
         }
+
         .env-btn:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
+
         .env-btn.remove {
             color: var(--vscode-errorForeground);
             border-color: var(--vscode-errorBorder);
         }
+
         .env-btn.remove:hover {
             background-color: var(--vscode-errorBackground);
         }
+
         .file-input-group {
             display: flex;
             gap: 8px;
             align-items: center;
             margin-top: 10px;
         }
+
         .file-input-group input[type="text"] {
             flex: 1;
         }
+
         .file-input-group button {
             flex: 0 0 auto;
             padding: 6px 12px;
@@ -196,9 +237,11 @@
             font-family: var(--vscode-font-family);
             font-size: var(--vscode-font-size);
         }
+
         .file-input-group button:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
+
         .remove-btn {
             background: none;
             border: none;
@@ -208,15 +251,18 @@
             border-radius: 3px;
             font-size: 16px;
         }
+
         .remove-btn:hover {
             background-color: var(--vscode-button-secondaryBackground);
         }
+
         .button-group {
             display: flex;
             gap: 10px;
             margin-top: 30px;
             justify-content: flex-end;
         }
+
         button {
             padding: 8px 16px;
             border: 1px solid var(--vscode-button-border);
@@ -227,30 +273,37 @@
             font-size: var(--vscode-font-size);
             border-radius: 3px;
         }
+
         button:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
+
         button.primary {
             background-color: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
         }
+
         button.secondary {
             background-color: var(--vscode-button-secondaryBackground);
             color: var(--vscode-button-secondaryForeground);
         }
+
         .add-field-section {
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid var(--vscode-panel-border);
         }
+
         .add-field-group {
             display: flex;
             gap: 10px;
             align-items: center;
         }
+
         .add-field-group input {
             flex: 1;
         }
+
         .json-view {
             margin-top: 20px;
             background-color: var(--vscode-textBlockQuote-background);
@@ -263,6 +316,7 @@
             max-height: 200px;
             overflow-y: auto;
         }
+
         .error-message {
             margin-top: 10px;
             padding: 10px;
@@ -273,9 +327,11 @@
             font-size: var(--vscode-font-size);
             display: none;
         }
+
         .array-field {
             align-items: flex-start;
         }
+
         .array-badge {
             font-size: 10px;
             background-color: var(--vscode-badge-background);
@@ -285,28 +341,33 @@
             margin-left: 8px;
             font-weight: normal;
         }
+
         .field-content {
             display: flex;
             gap: 10px;
             align-items: center;
             flex: 1;
         }
+
         .array-input-container {
             display: flex;
             flex-direction: column;
             gap: 8px;
             flex: 1;
         }
+
         .array-input-mode {
             display: flex;
             justify-content: flex-end;
         }
+
         .array-mode-buttons {
             display: flex;
             border: 1px solid var(--vscode-button-border);
             border-radius: 3px;
             overflow: hidden;
         }
+
         .array-mode-btn {
             background-color: var(--vscode-button-secondaryBackground);
             color: var(--vscode-button-secondaryForeground);
@@ -318,18 +379,22 @@
             align-items: center;
             transition: background-color 0.2s;
         }
+
         .array-mode-btn:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
+
         .array-mode-btn.active {
             background-color: var(--vscode-button-background);
             color: var(--vscode-button-foreground);
         }
+
         .array-input-content {
             display: flex;
             flex-direction: column;
             gap: 4px;
         }
+
         .array-list-input {
             min-height: 80px;
             resize: vertical;
@@ -341,13 +406,16 @@
             padding: 6px 8px;
             border-radius: 3px;
         }
+
         .array-list-input:focus {
             outline: 1px solid var(--vscode-focusBorder);
             outline-offset: -1px;
         }
+
         .array-single-input {
             width: 100%;
         }
+
         .enhanced-select {
             background-color: var(--vscode-dropdown-background);
             color: var(--vscode-dropdown-foreground);
@@ -357,13 +425,16 @@
             font-size: var(--vscode-font-size);
             border-radius: 3px;
         }
+
         .enhanced-select:hover {
             background-color: var(--vscode-button-hoverBackground);
         }
+
         .enhanced-select:focus {
             outline: 1px solid var(--vscode-focusBorder);
             outline-offset: -1px;
         }
+
         .field-description {
             font-size: 11px;
             color: var(--vscode-descriptionForeground);
@@ -371,6 +442,7 @@
             margin-left: 2px;
             opacity: 0.8;
         }
+
         .help-icon {
             color: var(--vscode-descriptionForeground);
             cursor: pointer;
@@ -380,9 +452,11 @@
             transition: opacity 0.2s;
             position: relative;
         }
+
         .help-icon:hover {
             opacity: 1;
         }
+
         .help-popup {
             position: fixed;
             background-color: var(--vscode-editorWidget-background);
@@ -402,17 +476,20 @@
             pointer-events: none;
             line-height: 1.4;
         }
+
         .help-popup.visible {
             opacity: 1;
             visibility: visible;
             pointer-events: auto;
         }
+
         .field-group-with-help {
             display: flex;
             align-items: flex-start;
             margin-bottom: 10px;
             gap: 10px;
         }
+
         .field-group-with-help label {
             flex: 0 0 120px;
             font-size: 13px;
@@ -422,171 +499,319 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
             <h2>Configuration Settings</h2>
             <div class="header-actions">
-                <button type="button" class="launch-json-btn" onclick="openLaunchJson()" title="Open launch.json file">
+                <button
+                    type="button"
+                    class="launch-json-btn"
+                    onclick="openLaunchJson()"
+                    title="Open launch.json file"
+                >
                     <span class="codicon codicon-file-json"></span> launch.json
                 </button>
-                <button type="button" class="run-btn" onclick="runConfiguration()" title="Run configuration without breakpoints">
+                <button
+                    type="button"
+                    class="run-btn"
+                    onclick="runConfiguration()"
+                    title="Run configuration without breakpoints"
+                >
                     <span class="codicon codicon-play"></span> Run
                 </button>
-                <button type="button" class="debug-btn" onclick="debugConfiguration()" title="Debug configuration with breakpoints">
+                <button
+                    type="button"
+                    class="debug-btn"
+                    onclick="debugConfiguration()"
+                    title="Debug configuration with breakpoints"
+                >
                     <span class="codicon codicon-debug-alt"></span> Debug
                 </button>
             </div>
         </div>
 
         <form id="configForm">
-        <div class="section">
-            <div class="section-title">Basic Information</div>
-            <div class="field-group-with-help">
-                <label for="configName">
-                    Name
-                    <span class="help-icon" onclick="toggleHelp(event, 'name')">ⓘ
-                        <div class="help-popup" id="help-name">The reader-friendly name to appear in the Debug launch configuration dropdown. This should be descriptive and unique.</div>
-                    </span>
-                </label>
-                <div style="flex: 1;">
-                    <input type="text" id="configName" name="name" placeholder="Configuration name">
-                </div>
-            </div>
-            <div class="field-group-with-help">
-                <label for="configType">
-                    Type
-                    <span class="help-icon" onclick="toggleHelp(event, 'type')">ⓘ
-                        <div class="help-popup" id="help-type">The type of debugger to use. Every installed debug extension introduces a type (e.g., node for Node.js, python for Python, chrome for Chrome debugging).</div>
-                    </span>
-                </label>
-                <div style="flex: 1;">
-                    <div class="hybrid-input">
-                        <input type="text" id="configType" name="type" placeholder="Enter configuration type..." oninput="clearTypeSelect()">
-                        <div class="or-divider">or</div>
-                        <select id="configTypeSelect" onchange="updateTypeFromSelect()" class="enhanced-select">
-                            <option value="">Select preset...</option>
-                        </select>
+            <div class="section">
+                <div class="section-title">Basic Information</div>
+                <div class="field-group-with-help">
+                    <label for="configName">
+                        Name
+                        <span
+                            class="help-icon"
+                            onclick="toggleHelp(event, 'name')"
+                        >ⓘ
+                            <div
+                                class="help-popup"
+                                id="help-name"
+                            >The reader-friendly name to appear in the Debug launch configuration dropdown. This should
+                                be descriptive and unique.</div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <input
+                            type="text"
+                            id="configName"
+                            name="name"
+                            placeholder="Configuration name"
+                        >
                     </div>
                 </div>
-            </div>
-            <div class="field-group-with-help">
-                <label for="configRequest">
-                    Request
-                    <span class="help-icon" onclick="toggleHelp(event, 'request')">ⓘ
-                        <div class="help-popup" id="help-request">The request type of this launch configuration. Currently supports 'launch' to start a new process or 'attach' to connect to a running process.</div>
-                    </span>
-                </label>
-                <div style="flex: 1;">
-                    <div class="hybrid-input">
-                        <input type="text" id="configRequest" name="request" placeholder="Enter request type..." oninput="clearRequestSelect()">
-                        <div class="or-divider">or</div>
-                        <select id="configRequestSelect" onchange="updateRequestFromSelect()" class="enhanced-select">
-                            <option value="">Select preset...</option>
-                            <option value="launch">🚀 Launch - Start a new process</option>
-                            <option value="attach">🔗 Attach - Connect to running process</option>
-                        </select>
+                <div class="field-group-with-help">
+                    <label for="configType">
+                        Type
+                        <span
+                            class="help-icon"
+                            onclick="toggleHelp(event, 'type')"
+                        >ⓘ
+                            <div
+                                class="help-popup"
+                                id="help-type"
+                            >The type of debugger to use. Every installed debug extension introduces a type (e.g., node
+                                for Node.js, python for Python, chrome for Chrome debugging).</div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="hybrid-input">
+                            <input
+                                type="text"
+                                id="configType"
+                                name="type"
+                                placeholder="Enter configuration type..."
+                                oninput="clearTypeSelect()"
+                            >
+                            <div class="or-divider">or</div>
+                            <select
+                                id="configTypeSelect"
+                                onchange="updateTypeFromSelect()"
+                                class="enhanced-select"
+                            >
+                                <option value="">Select preset...</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="field-group-with-help">
-                <label for="configConsole">
-                    Console
-                    <span class="help-icon" onclick="toggleHelp(event, 'console')">ⓘ
-                        <div class="help-popup" id="help-console">What kind of console to use for the debug session. Options: internalConsole (VSCode debug console), integratedTerminal (VSCode terminal), or externalTerminal (system terminal).</div>
-                    </span>
-                </label>
-                <div style="flex: 1;">
-                    <div class="hybrid-input">
-                        <input type="text" id="configConsole" name="console" placeholder="Enter console type..." oninput="clearConsoleSelect()">
-                        <div class="or-divider">or</div>
-                        <select id="configConsoleSelect" onchange="updateConsoleFromSelect()" class="enhanced-select">
-                            <option value="">Select preset...</option>
-                            <option value="internalConsole">📟 Internal Console - VSCode debug console</option>
-                            <option value="integratedTerminal">💻 Integrated Terminal - VSCode terminal</option>
-                            <option value="externalTerminal">🖥️ External Terminal - System terminal</option>
-                        </select>
+                <div class="field-group-with-help">
+                    <label for="configRequest">
+                        Request
+                        <span
+                            class="help-icon"
+                            onclick="toggleHelp(event, 'request')"
+                        >ⓘ
+                            <div
+                                class="help-popup"
+                                id="help-request"
+                            >The request type of this launch configuration. Currently supports 'launch' to start a new
+                                process or 'attach' to connect to a running process.</div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="hybrid-input">
+                            <input
+                                type="text"
+                                id="configRequest"
+                                name="request"
+                                placeholder="Enter request type..."
+                                oninput="clearRequestSelect()"
+                            >
+                            <div class="or-divider">or</div>
+                            <select
+                                id="configRequestSelect"
+                                onchange="updateRequestFromSelect()"
+                                class="enhanced-select"
+                            >
+                                <option value="">Select preset...</option>
+                                <option value="launch">🚀 Launch - Start a new process</option>
+                                <option value="attach">🔗 Attach - Connect to running process</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="field-group-with-help">
-                <label for="configInternalConsole">
-                    Internal Console
-                    <span class="help-icon" onclick="toggleHelp(event, 'internalConsole')">ⓘ
-                        <div class="help-popup" id="help-internalConsole">Controls the visibility of the Debug console panel during a debugging session. Options: neverOpen, openOnSessionStart, or openOnFirstSessionStart.</div>
-                    </span>
-                </label>
-                <div style="flex: 1;">
-                    <div class="hybrid-input">
-                        <input type="text" id="configInternalConsole" name="internalConsoleOptions" placeholder="Enter internal console option..." oninput="clearInternalConsoleSelect()">
-                        <div class="or-divider">or</div>
-                        <select id="configInternalConsoleSelect" onchange="updateInternalConsoleFromSelect()" class="enhanced-select">
-                            <option value="">Select preset...</option>
-                            <option value="neverOpen">❌ Never Open - Don't open debug console</option>
-                            <option value="openOnSessionStart">🔄 Open on Start - Open when debugging starts</option>
-                            <option value="openOnFirstSessionStart">🔔 Open on First Start - Open for first debug session</option>
-                        </select>
+                <div class="field-group-with-help">
+                    <label for="configConsole">
+                        Console
+                        <span
+                            class="help-icon"
+                            onclick="toggleHelp(event, 'console')"
+                        >ⓘ
+                            <div
+                                class="help-popup"
+                                id="help-console"
+                            >What kind of console to use for the debug session. Options: internalConsole (VSCode debug
+                                console), integratedTerminal (VSCode terminal), or externalTerminal (system terminal).
+                            </div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="hybrid-input">
+                            <input
+                                type="text"
+                                id="configConsole"
+                                name="console"
+                                placeholder="Enter console type..."
+                                oninput="clearConsoleSelect()"
+                            >
+                            <div class="or-divider">or</div>
+                            <select
+                                id="configConsoleSelect"
+                                onchange="updateConsoleFromSelect()"
+                                class="enhanced-select"
+                            >
+                                <option value="">Select preset...</option>
+                                <option value="internalConsole">📟 Internal Console - VSCode debug console</option>
+                                <option value="integratedTerminal">💻 Integrated Terminal - VSCode terminal</option>
+                                <option value="externalTerminal">🖥️ External Terminal - System terminal</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="field-group-with-help">
-                <label for="configPreLaunchTask">
-                    Pre-Launch Task
-                    <span class="help-icon" onclick="toggleHelp(event, 'preLaunchTask')">ⓘ
-                        <div class="help-popup" id="help-preLaunchTask">Task to run before the start of a debug session. Set to the label of a task specified in tasks.json or use ${defaultBuildTask} for your default build task.</div>
-                    </span>
-                </label>
-                <div style="flex: 1;">
-                    <div class="hybrid-input">
-                        <input type="text" id="configPreLaunchTask" name="preLaunchTask" placeholder="Enter task name or ${defaultBuildTask}..." oninput="clearPreLaunchTaskSelect()">
-                        <div class="or-divider">or</div>
-                        <select id="configPreLaunchTaskSelect" onchange="updatePreLaunchTaskFromSelect()" class="enhanced-select">
-                            <option value="">Select preset...</option>
-                            <option value="${defaultBuildTask}">🔨 Default Build Task</option>
-                            <option value="npm: build">📦 NPM: Build</option>
-                            <option value="npm: compile">📝 NPM: Compile</option>
-                            <option value="npm: test">🧪 NPM: Test</option>
-                            <option value="gradle: build">🐘 Gradle: Build</option>
-                            <option value="cargo: build">🦀 Cargo: Build</option>
-                            <option value="make: all">⚙️ Make: All</option>
-                        </select>
+                <div class="field-group-with-help">
+                    <label for="configInternalConsole">
+                        Internal Console
+                        <span
+                            class="help-icon"
+                            onclick="toggleHelp(event, 'internalConsole')"
+                        >ⓘ
+                            <div
+                                class="help-popup"
+                                id="help-internalConsole"
+                            >Controls the visibility of the Debug console panel during a debugging session. Options:
+                                neverOpen, openOnSessionStart, or openOnFirstSessionStart.</div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="hybrid-input">
+                            <input
+                                type="text"
+                                id="configInternalConsole"
+                                name="internalConsoleOptions"
+                                placeholder="Enter internal console option..."
+                                oninput="clearInternalConsoleSelect()"
+                            >
+                            <div class="or-divider">or</div>
+                            <select
+                                id="configInternalConsoleSelect"
+                                onchange="updateInternalConsoleFromSelect()"
+                                class="enhanced-select"
+                            >
+                                <option value="">Select preset...</option>
+                                <option value="neverOpen">❌ Never Open - Don't open debug console</option>
+                                <option value="openOnSessionStart">🔄 Open on Start - Open when debugging starts
+                                </option>
+                                <option value="openOnFirstSessionStart">🔔 Open on First Start - Open for first debug
+                                    session</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="field-group-with-help">
-                <label for="configPostDebugTask">
-                    Post-Debug Task
-                    <span class="help-icon" onclick="toggleHelp(event, 'postDebugTask')">ⓘ
-                        <div class="help-popup" id="help-postDebugTask">Task to run at the very end of a debug session. Set to the label of a task specified in tasks.json for cleanup or post-processing.</div>
-                    </span>
-                </label>
-                <div style="flex: 1;">
-                    <div class="hybrid-input">
-                        <input type="text" id="configPostDebugTask" name="postDebugTask" placeholder="Enter task name..." oninput="clearPostDebugTaskSelect()">
-                        <div class="or-divider">or</div>
-                        <select id="configPostDebugTaskSelect" onchange="updatePostDebugTaskFromSelect()" class="enhanced-select">
-                            <option value="">Select preset...</option>
-                            <option value="npm: clean">🧹 NPM: Clean</option>
-                            <option value="npm: lint">🔍 NPM: Lint</option>
-                            <option value="npm: coverage">📊 NPM: Coverage</option>
-                            <option value="docker: stop">🐳 Docker: Stop</option>
-                        </select>
+                <div class="field-group-with-help">
+                    <label for="configPreLaunchTask">
+                        Pre-Launch Task
+                        <span
+                            class="help-icon"
+                            onclick="toggleHelp(event, 'preLaunchTask')"
+                        >ⓘ
+                            <div
+                                class="help-popup"
+                                id="help-preLaunchTask"
+                            >Task to run before the start of a debug session. Set to the label of a task specified in
+                                tasks.json or use ${defaultBuildTask} for your default build task.</div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="hybrid-input">
+                            <input
+                                type="text"
+                                id="configPreLaunchTask"
+                                name="preLaunchTask"
+                                placeholder="Enter task name or ${defaultBuildTask}..."
+                                oninput="clearPreLaunchTaskSelect()"
+                            >
+                            <div class="or-divider">or</div>
+                            <select
+                                id="configPreLaunchTaskSelect"
+                                onchange="updatePreLaunchTaskFromSelect()"
+                                class="enhanced-select"
+                            >
+                                <option value="">Select preset...</option>
+                                <option value="${defaultBuildTask}">🔨 Default Build Task</option>
+                                <option value="npm: build">📦 NPM: Build</option>
+                                <option value="npm: compile">📝 NPM: Compile</option>
+                                <option value="npm: test">🧪 NPM: Test</option>
+                                <option value="gradle: build">🐘 Gradle: Build</option>
+                                <option value="cargo: build">🦀 Cargo: Build</option>
+                                <option value="make: all">⚙️ Make: All</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
+                <div class="field-group-with-help">
+                    <label for="configPostDebugTask">
+                        Post-Debug Task
+                        <span
+                            class="help-icon"
+                            onclick="toggleHelp(event, 'postDebugTask')"
+                        >ⓘ
+                            <div
+                                class="help-popup"
+                                id="help-postDebugTask"
+                            >Task to run at the very end of a debug session. Set to the label of a task specified in
+                                tasks.json for cleanup or post-processing.</div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="hybrid-input">
+                            <input
+                                type="text"
+                                id="configPostDebugTask"
+                                name="postDebugTask"
+                                placeholder="Enter task name..."
+                                oninput="clearPostDebugTaskSelect()"
+                            >
+                            <div class="or-divider">or</div>
+                            <select
+                                id="configPostDebugTaskSelect"
+                                onchange="updatePostDebugTaskFromSelect()"
+                                class="enhanced-select"
+                            >
+                                <option value="">Select preset...</option>
+                                <option value="npm: clean">🧹 NPM: Clean</option>
+                                <option value="npm: lint">🔍 NPM: Lint</option>
+                                <option value="npm: coverage">📊 NPM: Coverage</option>
+                                <option value="docker: stop">🐳 Docker: Stop</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div
+                    id="errorMessage"
+                    class="error-message"
+                ></div>
             </div>
-            <div id="errorMessage" class="error-message"></div>
-        </div>
 
-        <div class="section">
-            <div class="section-title">
-                Environment Variables
-                <span class="help-icon" onclick="toggleHelp(event, 'environment')" style="margin-left: 10px;">ⓘ
-                    <div class="help-popup" id="help-environment">Environment variables for the debug session. You can set key-value pairs or use envFile to load variables from a .env file. These variables are available to your program during debugging.</div>
-                </span>
-            </div>
+            <div class="section">
+                <div class="section-title">
+                    Environment Variables
+                    <span
+                        class="help-icon"
+                        onclick="toggleHelp(event, 'environment')"
+                        style="margin-left: 10px;"
+                    >ⓘ
+                        <div
+                            class="help-popup"
+                            id="help-environment"
+                        >Environment variables for the debug session. You can set key-value pairs or use envFile to load
+                            variables from a .env file. These variables are available to your program during debugging.
+                        </div>
+                    </span>
+                </div>
 
                 <div style="margin-bottom: 15px;">
-                    <table class="env-table" id="envTable">
+                    <table
+                        class="env-table"
+                        id="envTable"
+                    >
                         <thead>
                             <tr>
                                 <th style="width: 35%;">Variable Name</th>
@@ -596,29 +821,56 @@
                         </thead>
                         <tbody id="envTableBody">
                             <tr id="emptyEnvRow">
-                                <td colspan="3" style="text-align: center; opacity: 0.6; padding: 20px;">No environment variables configured. Click "Add Variable" to get started.</td>
+                                <td
+                                    colspan="3"
+                                    style="text-align: center; opacity: 0.6; padding: 20px;"
+                                >No environment variables configured. Click "Add Variable" to get started.</td>
                             </tr>
                         </tbody>
                     </table>
                     <div class="env-actions">
-                        <button type="button" class="env-btn" onclick="addEnvRow()">➕ Add Variable</button>
+                        <button
+                            type="button"
+                            class="env-btn"
+                            onclick="addEnvRow()"
+                        >➕ Add Variable</button>
                     </div>
                 </div>
 
                 <div class="file-input-group">
-                    <label for="envFile" style="flex: 0 0 auto; min-width: 80px;">Env File:</label>
-                    <input type="text" id="envFile" name="envFile" placeholder="${workspaceFolder}/.env">
-                    <button type="button" onclick="openEnvFile()">Open</button>
+                    <label
+                        for="envFile"
+                        style="flex: 0 0 auto; min-width: 80px;"
+                    >Env File:</label>
+                    <input
+                        type="text"
+                        id="envFile"
+                        name="envFile"
+                        placeholder="${workspaceFolder}/.env"
+                    >
+                    <button
+                        type="button"
+                        onclick="openEnvFile()"
+                    >Open</button>
                 </div>
             </div>
 
             <div class="section">
                 <div class="section-title">
-                Configuration Properties
-                <span class="help-icon" onclick="toggleHelp(event, 'properties')" style="margin-left: 10px;">ⓘ
-                    <div class="help-popup" id="help-properties">Additional properties specific to your debugger type. Common properties include: program (executable), args (arguments), cwd (working directory), port (for attach), and many debugger-specific options.</div>
-                </span>
-            </div>
+                    Configuration Properties
+                    <span
+                        class="help-icon"
+                        onclick="toggleHelp(event, 'properties')"
+                        style="margin-left: 10px;"
+                    >ⓘ
+                        <div
+                            class="help-popup"
+                            id="help-properties"
+                        >Additional properties specific to your debugger type. Common properties include: program
+                            (executable), args (arguments), cwd (working directory), port (for attach), and many
+                            debugger-specific options.</div>
+                    </span>
+                </div>
                 <div id="propertiesContainer">
                 </div>
             </div>
@@ -626,20 +878,45 @@
             <div class="add-field-section">
                 <div class="section-title">Add New Property</div>
                 <div class="add-field-group">
-                    <input type="text" id="newPropName" placeholder="Property name">
-                    <input type="text" id="newPropValue" placeholder="Property value">
-                    <button type="button" onclick="addField()">Add Property</button>
+                    <input
+                        type="text"
+                        id="newPropName"
+                        placeholder="Property name"
+                    >
+                    <input
+                        type="text"
+                        id="newPropValue"
+                        placeholder="Property value"
+                    >
+                    <button
+                        type="button"
+                        onclick="addField()"
+                    >Add Property</button>
                 </div>
             </div>
 
-            <div class="section" style="border-top: 1px solid var(--vscode-panel-border); padding-top: 20px; margin-top: 20px;">
+            <div
+                class="section"
+                style="border-top: 1px solid var(--vscode-panel-border); padding-top: 20px; margin-top: 20px;"
+            >
                 <div class="section-title">JSON Preview</div>
-                <div id="jsonPreview" class="json-view"></div>
+                <div
+                    id="jsonPreview"
+                    class="json-view"
+                ></div>
             </div>
 
             <div class="button-group">
-                <button type="button" class="secondary" onclick="reset()">Reset</button>
-                <button type="button" class="primary" onclick="saveConfiguration()">Update</button>
+                <!-- <button
+                    type="button"
+                    class="secondary"
+                    onclick="reset()"
+                >Reset</button> -->
+                <button
+                    type="button"
+                    class="primary"
+                    onclick="saveConfiguration()"
+                >Update</button>
             </div>
         </form>
     </div>
@@ -1092,7 +1369,7 @@
         }
 
         // Hide all help popups when clicking outside
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             if (!event.target.closest('.help-icon')) {
                 document.querySelectorAll('.help-popup.visible').forEach(popup => {
                     popup.classList.remove('visible');
@@ -1101,7 +1378,7 @@
         });
 
         // Hide all help popups on Escape key
-        document.addEventListener('keydown', function(event) {
+        document.addEventListener('keydown', function (event) {
             if (event.key === 'Escape') {
                 document.querySelectorAll('.help-popup.visible').forEach(popup => {
                     popup.classList.remove('visible');
@@ -1110,9 +1387,9 @@
         });
 
         // Add hover functionality for help icons
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.help-icon').forEach(icon => {
-                icon.addEventListener('mouseenter', function(e) {
+                icon.addEventListener('mouseenter', function (e) {
                     const fieldName = this.getAttribute('onclick').match(/'([^']+)'/)[1];
                     const popup = document.getElementById(`help-${fieldName}`);
                     if (popup) {
@@ -1126,7 +1403,7 @@
                     }
                 });
 
-                icon.addEventListener('mouseleave', function(e) {
+                icon.addEventListener('mouseleave', function (e) {
                     const fieldName = this.getAttribute('onclick').match(/'([^']+)'/)[1];
                     const popup = document.getElementById(`help-${fieldName}`);
                     if (popup) {
@@ -1139,11 +1416,11 @@
 
             // Keep popup open when hovering over it
             document.querySelectorAll('.help-popup').forEach(popup => {
-                popup.addEventListener('mouseenter', function() {
+                popup.addEventListener('mouseenter', function () {
                     this.classList.add('visible');
                 });
 
-                popup.addEventListener('mouseleave', function() {
+                popup.addEventListener('mouseleave', function () {
                     this.classList.remove('visible');
                 });
             });
@@ -1382,59 +1659,12 @@
                 }
             }
 
-            // Reset the form to initial configuration
-            const data = JSON.parse(initialConfig);
-            document.getElementById('configName').value = data.name || '';
-            document.getElementById('configType').value = data.type || '';
-            document.getElementById('configRequest').value = data.request || '';
-            document.getElementById('configConsole').value = data.console || '';
-            document.getElementById('configInternalConsole').value = data.internalConsoleOptions || '';
-            document.getElementById('configPreLaunchTask').value = data.preLaunchTask || '';
-            document.getElementById('configPostDebugTask').value = data.postDebugTask || '';
-
-            // Reset type dropdown
-            if (data.type && commonTypes.includes(data.type)) {
-                document.getElementById('configTypeSelect').value = data.type;
-            } else {
-                document.getElementById('configTypeSelect').value = '';
-            }
-
-            // Reset request dropdown
-            if (['launch', 'attach'].includes(data.request)) {
-                document.getElementById('configRequestSelect').value = data.request;
-            } else {
-                document.getElementById('configRequestSelect').value = '';
-            }
-
-            // Reset console dropdown
-            if (['internalConsole', 'integratedTerminal', 'externalTerminal'].includes(data.console)) {
-                document.getElementById('configConsoleSelect').value = data.console;
-            } else {
-                document.getElementById('configConsoleSelect').value = '';
-            }
-
-            // Reset internal console dropdown
-            if (['neverOpen', 'openOnSessionStart', 'openOnFirstSessionStart'].includes(data.internalConsoleOptions)) {
-                document.getElementById('configInternalConsoleSelect').value = data.internalConsoleOptions;
-            } else {
-                document.getElementById('configInternalConsoleSelect').value = '';
-            }
-
-            // Reset environment variables
-            populateEnvironmentVariables(data.env || {});
-
-            // Reset env file
-            document.getElementById('envFile').value = data.envFile || '';
-
-            // Reset properties
-            populateProperties(data.properties || {});
-
-            // Clear dirty flag
-            isDirty = false;
-            document.title = document.title.replace(/^[●]\s*/, '');
-
-            hideError();
-            updateJsonPreview();
+            // Close current page and reopen the configuration
+            const configName = document.getElementById('configName').value || 'unknown';
+            vscode.postMessage({
+                command: 'resetConfiguration',
+                configName: configName
+            });
         }
 
         function runConfiguration() {
@@ -1523,4 +1753,5 @@
         });
     </script>
 </body>
+
 </html>
