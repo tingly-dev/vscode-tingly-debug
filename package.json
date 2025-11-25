@@ -3,12 +3,12 @@
     "displayName": "Tingly Debug Configurations",
     "publisher": "Tingly-Dev",
     "description": "A debug and run configuration manager and UI for VS Code",
-    "version": "0.1.4",
+    "version": "0.1.1125",
     "engines": {
         "vscode": "^1.90.0"
     },
     "repository": {
-        "url": "https://github.com/FFengIll/vscode-tingly-debug"
+        "url": "https://github.com/Tingly-Dev/vscode-tingly-debug"
     },
     "categories": [
         "Visualization",
