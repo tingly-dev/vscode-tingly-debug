@@ -3,6 +3,7 @@ import { ConfigurationData, LaunchCompound, LaunchConfiguration } from '../core/
 import htmlTemplate from './configurationEditor.html';
 import { DebugConfigurationProvider } from './debugPanel';
 
+
 export class ConfigurationEditor {
     private static openPanels = new Map<string, vscode.WebviewPanel>();
 
@@ -260,7 +261,10 @@ export class ConfigurationEditor {
                                 configToRun.request = 'launch';
                             }
 
-                            await vscode.debug.startDebugging(undefined, configToRun);
+                            // Pass the workspace folder to allow VS Code to resolve ${workspaceFolder} variables
+                            const workspaceFolders = vscode.workspace.workspaceFolders;
+                            const workspaceFolder = workspaceFolders?.[0] || undefined;
+                            await vscode.debug.startDebugging(workspaceFolder, configToRun);
                             vscode.window.showInformationMessage(`Configuration "${configToRun.name}" is now running (breakpoints disabled)!`);
                             // panel.dispose(); // Keep panel open after running
                         } catch (error) {
@@ -294,7 +298,10 @@ export class ConfigurationEditor {
                                 configToDebug.request = 'launch';
                             }
 
-                            await vscode.debug.startDebugging(undefined, configToDebug);
+                            // Pass the workspace folder to allow VS Code to resolve ${workspaceFolder} variables
+                            const workspaceFolders = vscode.workspace.workspaceFolders;
+                            const workspaceFolder = workspaceFolders?.[0] || undefined;
+                            await vscode.debug.startDebugging(workspaceFolder, configToDebug);
                             vscode.window.showInformationMessage(`Configuration "${configToDebug.name}" is now debugging (breakpoints enabled)!`);
                             // panel.dispose(); // Keep panel open after debugging
                         } catch (error) {

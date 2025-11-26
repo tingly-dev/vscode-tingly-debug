@@ -283,7 +283,10 @@ export function registerCommandHandlers(
                     // Disable all breakpoints for run mode
                     await vscode.commands.executeCommand('workbench.debug.viewlet.action.disableAllBreakpoints');
 
-                    await vscode.debug.startDebugging(undefined, debugConfig);
+                    // Pass the workspace folder to allow VS Code to resolve ${workspaceFolder} variables
+                    const workspaceFolders = vscode.workspace.workspaceFolders;
+                    const workspaceFolder = workspaceFolders?.[0] || undefined;
+                    await vscode.debug.startDebugging(workspaceFolder, debugConfig);
                 } catch (error) {
                     console.error('Failed to start debug session:', error);
                     vscode.window.showErrorMessage(`Failed to run configuration: ${error}`);
@@ -353,7 +356,10 @@ export function registerCommandHandlers(
                     // Enable all breakpoints for debug mode
                     await vscode.commands.executeCommand('workbench.debug.viewlet.action.enableAllBreakpoints');
 
-                    await vscode.debug.startDebugging(undefined, debugConfig);
+                    // Pass the workspace folder to allow VS Code to resolve ${workspaceFolder} variables
+                    const workspaceFolders = vscode.workspace.workspaceFolders;
+                    const workspaceFolder = workspaceFolders?.[0] || undefined;
+                    await vscode.debug.startDebugging(workspaceFolder, debugConfig);
                 } catch (error) {
                     console.error('Failed to start debug session:', error);
                     vscode.window.showErrorMessage(`Failed to debug configuration: ${error}`);
@@ -528,7 +534,10 @@ export function registerCommandHandlers(
             // Disable all breakpoints for run mode
             await vscode.commands.executeCommand('workbench.debug.viewlet.action.disableAllBreakpoints');
 
-            await vscode.debug.startDebugging(undefined, item.config as LaunchConfiguration);
+            // Pass the workspace folder to allow VS Code to resolve ${workspaceFolder} variables
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            const workspaceFolder = workspaceFolders?.[0] || undefined;
+            await vscode.debug.startDebugging(workspaceFolder, item.config as LaunchConfiguration);
             vscode.window.showInformationMessage(`Configuration "${item.config.name}" is now running (breakpoints disabled)!`);
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to start debug session: ${error}`);
@@ -547,7 +556,10 @@ export function registerCommandHandlers(
             // Enable all breakpoints for debug mode
             await vscode.commands.executeCommand('workbench.debug.viewlet.action.enableAllBreakpoints');
 
-            await vscode.debug.startDebugging(undefined, item.config as LaunchConfiguration);
+            // Pass the workspace folder to allow VS Code to resolve ${workspaceFolder} variables
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            const workspaceFolder = workspaceFolders?.[0] || undefined;
+            await vscode.debug.startDebugging(workspaceFolder, item.config as LaunchConfiguration);
             vscode.window.showInformationMessage(`Configuration "${item.config.name}" is now debugging (breakpoints enabled)!`);
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to start debug session: ${error}`);
