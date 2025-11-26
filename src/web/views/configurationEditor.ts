@@ -53,9 +53,8 @@ export class ConfigurationEditor {
             };
 
             // Remove basic properties from the properties object to show only custom properties
-            delete (configData.properties as any).name;
-            delete (configData.properties as any).type;
-            delete (configData.properties as any).request;
+            const { name, type, request, ...customProperties } = configData.properties;
+            configData.properties = customProperties;
 
             // Update the webview content
             panel.webview.html = this.getConfigurationSettingsWebviewContent();
@@ -123,8 +122,14 @@ export class ConfigurationEditor {
         try {
             console.log(`Getting configuration "${configName}" from provider`);
             const configurations = await provider.readConfigurationsOnly();
-            console.log(`Available configurations:`, configurations.map(c => c.name));
-            const foundConfig = configurations.find(config => config.name === configName);
+
+            if (!configurations || !Array.isArray(configurations)) {
+                console.error('Invalid configurations returned from provider');
+                return null;
+            }
+
+            console.log(`Available configurations:`, configurations.map(c => c?.name || 'undefined'));
+            const foundConfig = configurations.find(config => config && config.name === configName);
             console.log(`Found configuration:`, foundConfig);
             return foundConfig || null;
         } catch (error) {
@@ -185,9 +190,8 @@ export class ConfigurationEditor {
         };
 
         // Remove basic properties from the properties object to show only custom properties
-        delete (configData.properties as any).name;
-        delete (configData.properties as any).type;
-        delete (configData.properties as any).request;
+        const { name: configName, type: configType, request: configRequest, ...customProperties } = configData.properties;
+        configData.properties = customProperties;
 
         // Generate HTML for the webview
         panel.webview.html = this.getConfigurationSettingsWebviewContent();
@@ -235,15 +239,24 @@ export class ConfigurationEditor {
                         break;
                     case 'runConfiguration':
                         try {
+                            // Validate the configuration before running
+                            const configToRun = this.validateAndSanitizeConfiguration(message.config);
+                            if (!configToRun) {
+                                panel.webview.postMessage({
+                                    command: 'showError',
+                                    message: 'Invalid configuration: missing required fields (name, type, request)'
+                                });
+                                return;
+                            }
+
                             // Save the configuration first
-                            await provider.updateConfiguration(configData.name, message.config);
+                            await provider.updateConfiguration(configData.name, configToRun);
 
                             // Disable all breakpoints for run mode
                             await vscode.commands.executeCommand('workbench.debug.viewlet.action.disableAllBreakpoints');
 
-                            // Then start debugging in run mode
-                            const configToRun = { ...message.config };
-                            if (configToRun.request === 'launch') {
+                            // Ensure request type is valid
+                            if (configToRun.request !== 'launch' && configToRun.request !== 'attach') {
                                 configToRun.request = 'launch';
                             }
 
@@ -251,23 +264,33 @@ export class ConfigurationEditor {
                             vscode.window.showInformationMessage(`Configuration "${configToRun.name}" is now running (breakpoints disabled)!`);
                             // panel.dispose(); // Keep panel open after running
                         } catch (error) {
+                            const errorMessage = error instanceof Error ? error.message : String(error);
                             panel.webview.postMessage({
                                 command: 'showError',
-                                message: `Failed to run configuration: ${error}`
+                                message: `Failed to run configuration: ${errorMessage}`
                             });
                         }
                         break;
                     case 'debugConfiguration':
                         try {
+                            // Validate the configuration before debugging
+                            const configToDebug = this.validateAndSanitizeConfiguration(message.config);
+                            if (!configToDebug) {
+                                panel.webview.postMessage({
+                                    command: 'showError',
+                                    message: 'Invalid configuration: missing required fields (name, type, request)'
+                                });
+                                return;
+                            }
+
                             // Save the configuration first
-                            await provider.updateConfiguration(configData.name, message.config);
+                            await provider.updateConfiguration(configData.name, configToDebug);
 
                             // Enable all breakpoints for debug mode
                             await vscode.commands.executeCommand('workbench.debug.viewlet.action.enableAllBreakpoints');
 
-                            // Then start debugging in debug mode
-                            const configToDebug = { ...message.config };
-                            if (configToDebug.request === 'launch') {
+                            // Ensure request type is valid
+                            if (configToDebug.request !== 'launch' && configToDebug.request !== 'attach') {
                                 configToDebug.request = 'launch';
                             }
 
@@ -275,21 +298,37 @@ export class ConfigurationEditor {
                             vscode.window.showInformationMessage(`Configuration "${configToDebug.name}" is now debugging (breakpoints enabled)!`);
                             // panel.dispose(); // Keep panel open after debugging
                         } catch (error) {
+                            const errorMessage = error instanceof Error ? error.message : String(error);
                             panel.webview.postMessage({
                                 command: 'showError',
-                                message: `Failed to debug configuration: ${error}`
+                                message: `Failed to debug configuration: ${errorMessage}`
                             });
                         }
                         break;
                     case 'saveConfiguration':
                         try {
-                            const newName = message.config.name;
+                            // Validate the configuration before saving
+                            const updatedConfig = this.validateAndSanitizeConfiguration(message.config);
+                            if (!updatedConfig) {
+                                panel.webview.postMessage({
+                                    command: 'showError',
+                                    message: 'Invalid configuration: missing required fields (name, type, request)'
+                                });
+                                return;
+                            }
+
+                            const newName = updatedConfig.name;
                             const oldName = configData.name;
 
                             // Check if name has changed and if there's a conflict
                             if (newName !== oldName) {
                                 const launchJson = await provider.readLaunchJson();
-                                const existingConfig = launchJson.configurations.find(config => config.name === newName);
+
+                                if (!launchJson || !Array.isArray(launchJson.configurations)) {
+                                    throw new Error('Invalid launch.json structure');
+                                }
+
+                                const existingConfig = launchJson.configurations.find(config => config && config.name === newName);
 
                                 if (existingConfig) {
                                     // Send error message back to webview
@@ -300,10 +339,6 @@ export class ConfigurationEditor {
                                     return;
                                 }
                             }
-
-                            const updatedConfig: LaunchConfiguration = {
-                                ...message.config
-                            };
 
                             await provider.updateConfiguration(launchConfig.name, updatedConfig);
                             vscode.window.showInformationMessage(`Configuration "${newName}" updated successfully!`);
@@ -325,17 +360,41 @@ export class ConfigurationEditor {
                     case 'openLaunchJson':
                         try {
                             const launchJsonPath = provider['launchJsonPath'];
+                            if (!launchJsonPath || typeof launchJsonPath !== 'string') {
+                                throw new Error('Invalid launch.json path');
+                            }
                             const launchUri = vscode.Uri.file(launchJsonPath);
                             const document = await vscode.workspace.openTextDocument(launchUri);
                             await vscode.window.showTextDocument(document);
                         } catch (error) {
-                            vscode.window.showErrorMessage(`Failed to open launch.json: ${error}`);
+                            const errorMessage = error instanceof Error ? error.message : String(error);
+                            vscode.window.showErrorMessage(`Failed to open launch.json: ${errorMessage}`);
                         }
                         break;
                     case 'checkUnsavedChanges':
                         try {
-                            const currentConfig = JSON.parse(message.currentConfig);
-                            const initialConfig = JSON.parse(message.initialConfig);
+                            let currentConfig: any;
+                            let initialConfig: any;
+
+                            try {
+                                currentConfig = JSON.parse(message.currentConfig);
+                            } catch (parseError) {
+                                console.error('Error parsing current config:', parseError);
+                                panel.webview.postMessage({
+                                    command: 'showError',
+                                    message: 'Invalid JSON in current configuration'
+                                });
+                                return;
+                            }
+
+                            try {
+                                initialConfig = JSON.parse(message.initialConfig);
+                            } catch (parseError) {
+                                console.error('Error parsing initial config:', parseError);
+                                // Continue with comparison even if initial config can't be parsed
+                                initialConfig = {};
+                            }
+
                             const hasChanges = JSON.stringify(currentConfig) !== JSON.stringify(initialConfig);
 
                             panel.webview.postMessage({
@@ -345,6 +404,10 @@ export class ConfigurationEditor {
                             });
                         } catch (error) {
                             console.error('Error checking unsaved changes:', error);
+                            panel.webview.postMessage({
+                                command: 'showError',
+                                message: 'Failed to check for unsaved changes'
+                            });
                         }
                         break;
                     case 'ready':
@@ -510,14 +573,69 @@ API_URL=http://localhost:3000
     }
 
     private static isArrayProperty(key: string): boolean {
-        return ['args', 'outFiles', 'preLaunchTask', 'postDebugTask', 'configurations', 'inputs'].includes(key);
+        return ['args', 'outFiles', 'configurations', 'inputs'].includes(key);
     }
 
     private static arrayToString(arr: any[]): string {
-        return JSON.stringify(arr);
+        if (!Array.isArray(arr)) {
+            return '[]';
+        }
+        try {
+            return JSON.stringify(arr);
+        } catch (error) {
+            console.error('Error array to string conversion:', error);
+            return '[]';
+        }
     }
 
     private static escapeHtmlTags(text: string): string {
         return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    /**
+     * Validate and sanitize configuration object
+     */
+    private static validateAndSanitizeConfiguration(config: any): LaunchConfiguration | null {
+        if (!config || typeof config !== 'object') {
+            return null;
+        }
+
+        // Required fields
+        if (!config.name || typeof config.name !== 'string' || config.name.trim() === '') {
+            return null;
+        }
+
+        if (!config.type || typeof config.type !== 'string' || config.type.trim() === '') {
+            return null;
+        }
+
+        if (!config.request || typeof config.request !== 'string' || config.request.trim() === '') {
+            return null;
+        }
+
+        // Sanitize request type
+        const request = config.request.trim().toLowerCase();
+        if (request !== 'launch' && request !== 'attach') {
+            // Default to launch if invalid
+            config.request = 'launch';
+        } else {
+            config.request = request;
+        }
+
+        // Sanitize other fields
+        config.name = config.name.trim();
+        config.type = config.type.trim();
+
+        // Validate env object if present
+        if (config.env && typeof config.env !== 'object') {
+            delete config.env;
+        }
+
+        // Validate envFile if present
+        if (config.envFile && typeof config.envFile !== 'string') {
+            delete config.envFile;
+        }
+
+        return config as LaunchConfiguration;
     }
 }
