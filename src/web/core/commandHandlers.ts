@@ -98,7 +98,7 @@ export function registerCommandHandlers(
      * Generate a unique configuration name by adding suffix based on user preference
      */
     async function generateUniqueConfigurationName(baseName: string, debugProvider: DebugConfigurationProvider): Promise<string | null> {
-        const config = vscode.workspace.getConfiguration('ddd');
+        const config = vscode.workspace.getConfiguration('tingly-debug');
         const suffixStyle = config.get<string>('nameCollisionSuffixStyle', 'index');
 
         try {
