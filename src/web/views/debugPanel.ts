@@ -117,7 +117,6 @@ export class DebugErrorItem extends vscode.TreeItem {
     constructor(
         public readonly config: ErrorConfiguration,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None,
-        private clickBehavior?: ClickBehavior,
         private launchJsonPath?: string
     ) {
         super(config.name, collapsibleState);
@@ -154,6 +153,38 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
             this.workspaceRoot = '';
         }
         this.launchJsonPath = `${this.workspaceRoot}/.vscode/launch.json`;
+    }
+
+    /**
+     * Check if launch.json exists and prompt user to create it if it doesn't
+     * @param operation The operation being attempted (for user message)
+     * @param allowCreate Whether to offer creating the file (for add/duplicate operations)
+     * @returns true if file exists or user chose to create it, false if user cancelled or file can't be created
+     */
+    private async ensureLaunchJsonExists(operation: string, allowCreate: boolean = false): Promise<boolean> {
+        const launchUri = vscode.Uri.file(this.launchJsonPath);
+
+        try {
+            await vscode.workspace.fs.stat(launchUri);
+            return true; // File exists
+        } catch (error) {
+            // File doesn't exist
+            if (allowCreate) {
+                const createFile = await vscode.window.showInformationMessage(
+                    `launch.json does not exist. Would you like to create it ${operation}?`,
+                    'Create',
+                    'Cancel'
+                );
+
+                if (createFile === 'Create') {
+                    return true; // User chose to create
+                }
+                return false; // User cancelled
+            } else {
+                vscode.window.showErrorMessage(`Cannot ${operation}: launch.json does not exist.`);
+                return false;
+            }
+        }
     }
 
     refresh(): void {
@@ -209,7 +240,7 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
                 }
             };
 
-            return [new DebugErrorItem(errorConfig, vscode.TreeItemCollapsibleState.None, undefined, this.launchJsonPath)];
+            return [new DebugErrorItem(errorConfig, vscode.TreeItemCollapsibleState.None, this.launchJsonPath)];
         }
     }
 
@@ -236,8 +267,18 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
             const content = document.getText();
             return parseJSONCConfigurations(content);
         } catch (error) {
-            // Check if the error is due to file not found
-            if (error && typeof error === 'object' && 'code' in error && error.code === 'FileNotFound') {
+            // Check if the error is due to file not found - check various possible error codes/messages
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const errorCode = (error && typeof error === 'object' && 'code' in error) ? error.code : undefined;
+
+            const isFileNotFound =
+                errorCode === 'FileNotFound' ||
+                errorCode === 'ENOENT' ||
+                errorMessage.includes('file not found') ||
+                errorMessage.includes('does not exist') ||
+                errorMessage.includes('no such file');
+
+            if (isFileNotFound) {
                 // File doesn't exist - this is a normal case, return empty array
                 console.log('launch.json not found, returning empty configurations');
                 return [];
@@ -272,26 +313,44 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
 
     async addConfiguration(config: LaunchConfiguration): Promise<void> {
         try {
+            // Check if launch.json exists and prompt user to create it
+            if (!await this.ensureLaunchJsonExists('with this configuration', true)) {
+                return; // User cancelled or file can't be created
+            }
+
             const launchUri = vscode.Uri.file(this.launchJsonPath);
-            const document = await vscode.workspace.openTextDocument(launchUri);
-            const existingContent = document.getText();
 
-            // Use simplified JSONC utility to add configuration
-            const newContent = addLaunchConfiguration(existingContent, config);
+            try {
+                // Try to read existing file
+                const document = await vscode.workspace.openTextDocument(launchUri);
+                const existingContent = document.getText();
 
-            await vscode.workspace.fs.writeFile(launchUri, new TextEncoder().encode(newContent));
-            this.refresh();
+                // Use simplified JSONC utility to add configuration
+                const newContent = addLaunchConfiguration(existingContent, config);
+
+                await vscode.workspace.fs.writeFile(launchUri, new TextEncoder().encode(newContent));
+                this.refresh();
+            } catch (error) {
+                // If reading fails, create new file with the configuration
+                const launchJson: LaunchJson = {
+                    version: "0.2.0",
+                    configurations: [config]
+                };
+                await this.writeLaunchJson(launchJson);
+                this.refresh();
+            }
         } catch (error) {
-            // Fallback to original method if file doesn't exist
-            const launchJson = await this.readLaunchJson();
-            launchJson.configurations.push(config);
-            await this.writeLaunchJson(launchJson);
-            this.refresh();
+            throw new Error(`Failed to add configuration: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 
     async updateConfiguration(oldName: string, newConfig: LaunchConfiguration | LaunchCompound): Promise<void> {
         try {
+            // Check if launch.json exists
+            if (!await this.ensureLaunchJsonExists('update configuration')) {
+                return; // File doesn't exist and error was shown
+            }
+
             const launchUri = vscode.Uri.file(this.launchJsonPath);
             const document = await vscode.workspace.openTextDocument(launchUri);
             const existingContent = document.getText();
@@ -302,30 +361,17 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
             await vscode.workspace.fs.writeFile(launchUri, new TextEncoder().encode(newContent));
             this.refresh();
         } catch (error) {
-            // Fallback to original method if something goes wrong
-            const launchJson = await this.readLaunchJson();
-
-            // Find and update configuration
-            const configIndex = launchJson.configurations.findIndex(config => config.name === oldName);
-            if (configIndex !== -1) {
-                launchJson.configurations[configIndex] = newConfig as LaunchConfiguration;
-            } else {
-                // Check if it's a compound
-                const compoundIndex = launchJson.compounds?.findIndex(compound => compound.name === oldName);
-                if (compoundIndex !== undefined && compoundIndex !== -1) {
-                    launchJson.compounds![compoundIndex] = newConfig as LaunchCompound;
-                } else {
-                    throw new Error(`Configuration "${oldName}" not found`);
-                }
-            }
-
-            await this.writeLaunchJson(launchJson);
-            this.refresh();
+            throw new Error(`Failed to update configuration: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 
     async deleteConfiguration(name: string): Promise<void> {
         try {
+            // Check if launch.json exists
+            if (!await this.ensureLaunchJsonExists('delete configuration')) {
+                return; // File doesn't exist and error was shown
+            }
+
             const launchUri = vscode.Uri.file(this.launchJsonPath);
             const document = await vscode.workspace.openTextDocument(launchUri);
             const existingContent = document.getText();
@@ -336,49 +382,40 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
             await vscode.workspace.fs.writeFile(launchUri, new TextEncoder().encode(newContent));
             this.refresh();
         } catch (error) {
-            // Fallback to original method if something goes wrong
-            const launchJson = await this.readLaunchJson();
-
-            // Remove from configurations
-            const configIndex = launchJson.configurations.findIndex(config => config.name === name);
-            if (configIndex !== -1) {
-                launchJson.configurations.splice(configIndex, 1);
-            } else {
-                // Check if it's a compound
-                const compoundIndex = launchJson.compounds?.findIndex(compound => compound.name === name);
-                if (compoundIndex !== undefined && compoundIndex !== -1) {
-                    launchJson.compounds!.splice(compoundIndex, 1);
-                } else {
-                    throw new Error(`Configuration "${name}" not found`);
-                }
-            }
-
-            await this.writeLaunchJson(launchJson);
-            this.refresh();
+            throw new Error(`Failed to delete configuration: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 
     async duplicateConfiguration(config: LaunchConfiguration | LaunchCompound): Promise<void> {
-        const launchJson = await this.readLaunchJson();
+        try {
+            // Check if launch.json exists and prompt user to create it
+            if (!await this.ensureLaunchJsonExists('with this duplicated configuration', true)) {
+                return; // User cancelled or file can't be created
+            }
 
-        if ('configurations' in config) {
-            // Duplicate compound
-            const newCompound: LaunchCompound = {
-                name: `${config.name} Copy`,
-                configurations: [...(config as LaunchCompound).configurations]
-            };
-            launchJson.compounds = launchJson.compounds || [];
-            launchJson.compounds.push(newCompound);
-        } else {
-            // Duplicate configuration
-            const newConfig: LaunchConfiguration = {
-                ...config,
-                name: `${config.name} Copy`
-            };
-            launchJson.configurations.push(newConfig);
+            const launchJson = await this.readLaunchJson();
+
+            if ('configurations' in config) {
+                // Duplicate compound
+                const newCompound: LaunchCompound = {
+                    name: `${config.name} Copy`,
+                    configurations: [...(config as LaunchCompound).configurations]
+                };
+                launchJson.compounds = launchJson.compounds || [];
+                launchJson.compounds.push(newCompound);
+            } else {
+                // Duplicate configuration
+                const newConfig: LaunchConfiguration = {
+                    ...config,
+                    name: `${config.name} Copy`
+                };
+                launchJson.configurations.push(newConfig);
+            }
+
+            await this.writeLaunchJson(launchJson);
+            this.refresh();
+        } catch (error) {
+            throw new Error(`Failed to duplicate configuration: ${error instanceof Error ? error.message : String(error)}`);
         }
-
-        await this.writeLaunchJson(launchJson);
-        this.refresh();
     }
 }
