@@ -1285,28 +1285,8 @@
             select.innerHTML = '<option value="">Select preset...</option>';
 
             const typeDescriptions = {
-                'node': '🟢 Node.js - JavaScript/TypeScript debugging',
-                'node-terminal': '💻 Node.js Terminal - Debug in terminal',
-                'python': '🐍 Python - Python debugging',
-                'java': '☕ Java - Java debugging',
-                'cppdbg': '⚙️ C++ (GDB) - C++ debugging with GDB',
-                'cppvsdbg': '🔧 C++ (VS) - C++ debugging with Visual Studio',
-                'chrome': '🌐 Chrome - Chrome browser debugging',
-                'firefox': '🦊 Firefox - Firefox browser debugging',
-                'msedge': '📘 Edge - Microsoft Edge debugging',
-                'coreclr': '🔷 .NET Core - .NET Core debugging',
-                'dart': '🎯 Dart - Dart language debugging',
-                'go': '🐹 Go - Go language debugging',
-                'php': '🐘 PHP - PHP debugging',
-                'ruby': '💎 Ruby - Ruby debugging',
-                'lua': '🌙 Lua - Lua debugging',
-                'rust': '🦀 Rust - Rust debugging',
-                'elm': '🌳 Elm - Elm language debugging',
-                'mock': '🎭 Mock - Mock debug adapter for testing',
-                'pwa-node': '📱 PWA Node - Progressive Web App Node debugging',
-                'pwa-chrome': '📱 PWA Chrome - Progressive Web App Chrome debugging',
-                'pwa-msedge': '📱 PWA Edge - Progressive Web App Edge debugging',
-                'node2': '🟢 Node.js 2 - Alternative Node.js debugging'
+                'python': 'Python - Python debugging (Well supported)',
+                'go': 'Go - Go language debugging (Well supported)'
             };
 
             commonTypes.forEach(type => {
@@ -2119,20 +2099,18 @@
         });
 
         // Initialize when DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            debugDomElements();
-
-            // Send ready message to extension to initialize data
-            vscode.postMessage({
-                command: 'ready'
-            });
-        });
-
-        // Fallback: if DOM is already loaded, send ready message immediately
         if (document.readyState === 'loading') {
-            // DOM is still loading, event listener will handle it
+            document.addEventListener('DOMContentLoaded', () => {
+                debugDomElements();
+
+                // Send ready message to extension to initialize data
+                vscode.postMessage({
+                    command: 'ready'
+                });
+            });
         } else {
-            // DOM is already loaded, send ready message immediately
+            // DOM is already loaded, initialize immediately
+            debugDomElements();
             vscode.postMessage({
                 command: 'ready'
             });
