@@ -115,6 +115,8 @@
             color: var(--vscode-input-foreground);
             font-family: var(--vscode-font-family);
             font-size: var(--vscode-font-size);
+            box-sizing: border-box;
+            min-width: 0;
         }
 
         input[type="text"]:focus,
@@ -286,22 +288,6 @@
         button.secondary {
             background-color: var(--vscode-button-secondaryBackground);
             color: var(--vscode-button-secondaryForeground);
-        }
-
-        .add-field-section {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid var(--vscode-panel-border);
-        }
-
-        .add-field-group {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .add-field-group input {
-            flex: 1;
         }
 
         .json-view {
@@ -496,6 +482,60 @@
             color: var(--vscode-foreground);
             display: flex;
             align-items: center;
+        }
+
+        .properties-section {
+            margin-left: 0;
+            padding-left: 0;
+        }
+
+        .properties-section .field-group {
+            padding-left: 0;
+            margin-left: 0;
+        }
+
+        .add-field-section {
+            margin-bottom: 25px;
+        }
+
+        .add-field-section .add-field-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .add-field-section .add-field-group input {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid var(--vscode-input-border);
+            background-color: var(--vscode-input-background);
+            color: var(--vscode-input-foreground);
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+
+        .add-field-section .add-field-group input:focus {
+            outline: 1px solid var(--vscode-focusBorder);
+            outline-offset: -1px;
+        }
+
+        .add-field-section .add-field-group button {
+            padding: 6px 12px;
+            border: 1px solid var(--vscode-button-border);
+            background-color: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            cursor: pointer;
+            border-radius: 3px;
+            font-family: var(--vscode-font-family);
+            font-size: var(--vscode-font-size);
+            white-space: nowrap;
+        }
+
+        .add-field-section .add-field-group button:hover {
+            background-color: var(--vscode-button-hoverBackground);
         }
     </style>
 </head>
@@ -1083,8 +1123,6 @@
                     class="error-message"
                 ></div>
             </div>
-    </div>
-
 
     <div class="section">
         <div class="section-title">
@@ -1102,11 +1140,11 @@
                     debugger-specific options.</div>
             </span>
         </div>
-        <div id="propertiesContainer">
+        <div id="propertiesContainer" class="properties-section">
         </div>
     </div>
 
-    <div class="add-field-section">
+    <div class="section add-field-section">
         <div class="section-title">Add New Property</div>
         <div class="add-field-group">
             <input
