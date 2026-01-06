@@ -2,19 +2,19 @@
 
 A JetBrains-inspired debug and run configuration manager for Visual Studio Code with intuitive UI and seamless launch.json synchronization.
 
-> Status: Work-In-Process.
+> Status: Work-In-Progress.
 
 ## 📸 Preview
 
 ![](resource/preview.png)
 
-## ✨ Key Features
+## ✨ Features
 
-- **🎯 Visual Configuration Management** - Clean tree view with automatic launch.json sync
-- **⚡ Smart Configuration Creation** - Instant configs from active files with intelligent type detection
-- **🔧 Visual Configuration Editor** - Form-based editing with real-time JSON preview
-- **🚀 One-Click Actions** - Debug, run, duplicate, and delete configurations easily
-- **🔄 Auto-Refresh** - Real-time updates when launch.json changes
+- **Visual Configuration Management** - Clean tree view with automatic launch.json sync
+- **Smart Configuration Creation** - Create configs from active files with intelligent type detection
+- **Visual Configuration Editor** - Form-based editing with real-time JSON preview
+- **One-Click Actions** - Debug, run, duplicate, and delete configurations easily
+- **Auto-Refresh** - Real-time updates when launch.json changes
 
 ## 🚀 Getting Started
 
@@ -23,12 +23,12 @@ A JetBrains-inspired debug and run configuration manager for Visual Studio Code 
 3. **Manage Configs** - Find "Tingly Debug Configurations" panel in Debug sidebar
 4. **Suggestion** - Move the panel to the **Top** of Run & Debug View.
 
-## 📖 Quick Usage
+## 📖 Usage
 
 ### Create Configuration
-- **Quick**: Open file → Click **💡 Quick Configuration**
+- **Quick**: Open a file → Click **💡 Quick Configuration**
 - **Manual**: Click **➕ Add Configuration** → Set name and type
-- **Auto Sync**: Click **Sync** to load existing from `launch.json` or create a new one.
+- **Sync**: Click **Sync** to load existing configs from `launch.json` or create a new one
 
 ### Manage Configurations
 - **🐛 Debug** - Start debugging session
@@ -43,22 +43,22 @@ A JetBrains-inspired debug and run configuration manager for Visual Studio Code 
 - CoreCLR (.NET)
 - Custom debug configurations
 
-## ⚙️ Configuration Editor Features
+## ⚙️ Configuration Editor
 
 - Form-based interface for all launch.json properties
-- Live JSON preview as you type
+- Live JSON preview
 - Dynamic property management
 - Smart value type detection
 - Error validation and feedback
 
-## 📋 System Requirements
+## 📋 Requirements
 
-- VS Code 1.90.0 or higher
-- Web extension compatible
+VS Code 1.90.0 or higher (web extension compatible)
 
-# Ref
-- https://github.com/wraith13/vscode-schemas
+## Resources
+
+[vscode-schemas](https://github.com/wraith13/vscode-schemas)
 
 ---
 
-**Transform your VS Code debugging experience with Tingly! 🚀**
+**Transform your VS Code debugging experience with Tingly!**
