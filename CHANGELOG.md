@@ -4,6 +4,11 @@ All notable changes to the "Tingly Debug" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.260129.1930] - 2026-01-29
+### Changed
+- bugfix: fail when .vscode or launch.json not exist.
+- feat: new menu item to debug from file.
+
 ## [0.25.120620] - 2025-12-06
 
 ### Added
