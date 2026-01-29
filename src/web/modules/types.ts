@@ -22,8 +22,8 @@ export interface LanguageFramework {
     name: string;
     filePatterns: string[];
     priority: number; // Higher number = higher priority
-    debugConfig: (symbol: SymbolInfo) => LanguageDebugConfig;
-    testConfig?: (symbol: SymbolInfo) => LanguageTestConfig;
+    debugConfig: ((symbol: SymbolInfo) => LanguageDebugConfig) | ((symbol: SymbolInfo) => Promise<LanguageDebugConfig>);
+    testConfig?: ((symbol: SymbolInfo) => LanguageTestConfig) | ((symbol: SymbolInfo) => Promise<LanguageTestConfig>);
     setupInstructions?: string;
     requirements?: string[];
 }

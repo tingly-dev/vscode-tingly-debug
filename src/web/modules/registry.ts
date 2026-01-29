@@ -100,7 +100,9 @@ export class LanguageModuleRegistry {
 
         const framework = await this.detectFramework(symbol);
         if (framework) {
-            return framework.debugConfig(symbol);
+            // Handle both sync and async debugConfig functions
+            const config = framework.debugConfig(symbol);
+            return config instanceof Promise ? await config : config;
         }
 
         return module.defaultConfig(symbol.filePath, symbol.workspaceRoot);
@@ -109,7 +111,9 @@ export class LanguageModuleRegistry {
     public async generateTestConfig(symbol: SymbolInfo): Promise<any | null> {
         const framework = await this.detectFramework(symbol);
         if (framework && framework.testConfig) {
-            return framework.testConfig(symbol);
+            // Handle both sync and async testConfig functions
+            const config = framework.testConfig(symbol);
+            return config instanceof Promise ? await config : config;
         }
         return null;
     }

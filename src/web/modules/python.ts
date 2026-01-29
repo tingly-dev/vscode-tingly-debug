@@ -3,6 +3,71 @@
 import * as vscode from 'vscode';
 import { LanguageModule, LanguageFramework, LanguageDebugConfig, LanguageTestConfig } from './types';
 import { SymbolInfo } from '../config/debugCommandGenerator';
+import { PythonEnvironmentResolver } from './pythonEnvironmentResolver';
+
+/**
+ * Create pytest debug configuration with environment resolution
+ */
+async function createPytestDebugConfig(symbol: SymbolInfo): Promise<LanguageDebugConfig> {
+    // Get interpreter path (may be undefined)
+    const interpreterPath = await PythonEnvironmentResolver.resolveInterpreter();
+
+    const config: LanguageDebugConfig = {
+        name: `pytest: ${symbol.name}`,
+        type: 'python',
+        request: 'launch',
+        module: 'pytest',
+        purpose: ['debug-test'],
+        args: [
+            '-s', '-v',
+            `${vscode.workspace.asRelativePath(symbol.filePath)}::${symbol.path.join('::')}`
+        ],
+        cwd: '${workspaceFolder}',
+        env: {
+            PYTHONPATH: '${workspaceFolder}'
+        },
+        console: 'integratedTerminal',
+        justMyCode: false,
+        subProcess: true
+    };
+
+    // Only add pythonPath if we found a specific one
+    if (interpreterPath) {
+        config.pythonPath = interpreterPath;
+    }
+
+    return config;
+}
+
+/**
+ * Create unittest debug configuration with environment resolution
+ */
+async function createUnittestDebugConfig(symbol: SymbolInfo): Promise<LanguageDebugConfig> {
+    // Get interpreter path (may be undefined)
+    const interpreterPath = await PythonEnvironmentResolver.resolveInterpreter();
+
+    const config: LanguageDebugConfig = {
+        name: `unittest: ${symbol.name}`,
+        type: 'python',
+        request: 'launch',
+        module: 'unittest',
+        purpose: ['debug-test'],
+        args: [
+            vscode.workspace.asRelativePath(symbol.filePath).replace('.py', '') + '.' + symbol.path.slice(1).join('.')
+        ],
+        cwd: '${workspaceFolder}',
+        console: 'integratedTerminal',
+        justMyCode: true,
+        subProcess: true
+    };
+
+    // Only add pythonPath if we found a specific one
+    if (interpreterPath) {
+        config.pythonPath = interpreterPath;
+    }
+
+    return config;
+}
 
 export const pythonModule: LanguageModule = {
     language: 'python',
@@ -15,22 +80,7 @@ export const pythonModule: LanguageModule = {
             name: 'pytest',
             filePatterns: ['**/test_*.py', '**/*_test.py', '**/tests/**', '**/conftest.py', 'pytest.ini', 'pyproject.toml', 'setup.cfg'],
             priority: 10,
-            debugConfig: (symbol: SymbolInfo): LanguageDebugConfig => ({
-                name: `pytest: ${symbol.name}`,
-                type: 'python',
-                request: 'launch',
-                module: 'pytest',
-                args: [
-                    '-s', '-v',
-                    `${vscode.workspace.asRelativePath(symbol.filePath)}::${symbol.path.join('::')}`
-                ],
-                cwd: '${workspaceFolder}',
-                env: {
-                    PYTHONPATH: '${workspaceFolder}'
-                },
-                console: 'integratedTerminal',
-                justMyCode: false
-            }),
+            debugConfig: createPytestDebugConfig,
             testConfig: (symbol: SymbolInfo): LanguageTestConfig => ({
                 framework: 'pytest',
                 testCommand: 'pytest',
@@ -45,18 +95,7 @@ export const pythonModule: LanguageModule = {
             name: 'unittest',
             filePatterns: ['**/test_*.py', '**/*_test.py', '**/tests/**'],
             priority: 5,
-            debugConfig: (symbol: SymbolInfo): LanguageDebugConfig => ({
-                name: `unittest: ${symbol.name}`,
-                type: 'python',
-                request: 'launch',
-                module: 'unittest',
-                args: [
-                    vscode.workspace.asRelativePath(symbol.filePath).replace('.py', '') + '.' + symbol.path.slice(1).join('.')
-                ],
-                cwd: '${workspaceFolder}',
-                console: 'integratedTerminal',
-                justMyCode: true
-            }),
+            debugConfig: createUnittestDebugConfig,
             setupInstructions: 'unittest is built into Python standard library',
             requirements: ['python', 'Python extension for VS Code']
         }
@@ -98,6 +137,13 @@ Ensure your Python interpreter is properly configured:
 1. Open Command Palette (Cmd+Shift+P / Ctrl+Shift+P)
 2. Type "Python: Select Interpreter"
 3. Choose your Python environment
+
+## Environment Detection
+Tingly Debug automatically detects your Python interpreter from:
+- Python extension's active interpreter
+- Python Environments extension (if installed)
+- Workspace configuration (python.defaultInterpreterPath)
+- Falls back to system default Python
 
 ## Common Issues
 - Make sure the Python extension is enabled

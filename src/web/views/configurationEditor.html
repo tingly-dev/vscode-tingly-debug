@@ -826,6 +826,32 @@
                         >
                     </div>
                 </div>
+                <div class="field-group-with-help" id="pythonPathField" style="display: none;">
+                    <label for="configPythonPath">
+                        pythonPath
+                        <span
+                            class="help-icon"
+                            onclick="toggleHelp(event, 'pythonPath')"
+                        >ⓘ
+                            <div
+                                class="help-popup"
+                                id="help-pythonPath"
+                            >Absolute path to the Python interpreter to use for debugging. If not specified, the debugger
+                                will use the system default Python or the interpreter configured in Python extension settings.
+                                This field is automatically detected when possible.</div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <input
+                            type="text"
+                            id="configPythonPath"
+                            name="pythonPath"
+                            placeholder="Auto-detected from Python extension (leave empty for default)"
+                            style="background-color: var(--vscode-editor-inactiveSelectionBackground);"
+                            readonly
+                        >
+                    </div>
+                </div>
                 <div class="field-group-with-help">
                     <label for="configCwd">
                         cwd
@@ -1255,6 +1281,19 @@
                 document.getElementById('configModule').value = data.config.module || '';
                 document.getElementById('configCwd').value = data.config.cwd || '';
                 document.getElementById('configJustMyCode').value = data.config.justMyCode !== undefined ? String(data.config.justMyCode) : '';
+                document.getElementById('configPythonPath').value = data.config.pythonPath || '';
+
+                // Show pythonPath field only for Python configurations
+                const pythonPathField = document.getElementById('pythonPathField');
+                if (data.config.type === 'python') {
+                    pythonPathField.style.display = 'flex';
+                    // Add visual indicator if pythonPath is set
+                    if (data.config.pythonPath) {
+                        document.getElementById('configPythonPath').style.borderColor = 'var(--vscode-textLink-foreground)';
+                    }
+                } else {
+                    pythonPathField.style.display = 'none';
+                }
 
                 // Set justMyCode dropdown
                 if (['true', 'false'].includes(String(data.config.justMyCode))) {
@@ -1860,6 +1899,11 @@
                 const configModule = document.getElementById('configModule');
                 if (configModule && configModule.value.trim()) {
                     config.module = configModule.value.trim();
+                }
+
+                const configPythonPath = document.getElementById('configPythonPath');
+                if (configPythonPath && configPythonPath.value.trim()) {
+                    config.pythonPath = configPythonPath.value.trim();
                 }
 
                 const configCwd = document.getElementById('configCwd');

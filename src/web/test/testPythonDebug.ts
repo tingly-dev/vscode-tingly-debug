@@ -1,10 +1,10 @@
-// Simple test to verify Python debugging configuration generation
+// Enhanced test for Python debugging configuration generation
 
 import { languageRegistry } from '../modules/registry';
 import { SymbolInfo } from '../config/debugCommandGenerator';
 
 async function testPythonDebug() {
-    console.log('Testing Python debug configuration generation...');
+    console.log('=== Testing Python Debug Configuration Generation ===');
 
     // Test Python symbol
     const pythonSymbol: SymbolInfo = {
@@ -23,6 +23,25 @@ async function testPythonDebug() {
         // Check basic properties
         if (debugConfig.type === 'python' && debugConfig.name.includes('test_example')) {
             console.log('✅ Python debug configuration generated successfully!');
+
+            // Check for new features
+            if (debugConfig.purpose && Array.isArray(debugConfig.purpose) && debugConfig.purpose.includes('debug-test')) {
+                console.log('✅ Purpose attribute for test debugging is set');
+            } else {
+                console.log('⚠️  Purpose attribute missing');
+            }
+
+            if (debugConfig.subProcess === true) {
+                console.log('✅ SubProcess support enabled');
+            } else {
+                console.log('⚠️  SubProcess support missing');
+            }
+
+            if (debugConfig.pythonPath) {
+                console.log(`✅ Python interpreter path: ${debugConfig.pythonPath}`);
+            } else {
+                console.log('ℹ️  No specific interpreter configured (will use system default)');
+            }
         } else {
             console.log('❌ Python debug configuration has issues');
         }
@@ -31,8 +50,40 @@ async function testPythonDebug() {
     }
 }
 
+async function testUnittestDebug() {
+    console.log('\n=== Testing Python Unittest Debug Configuration ===');
+
+    const unittestSymbol: SymbolInfo = {
+        name: 'test_unittest_example',
+        path: ['TestUnittest', 'test_unittest_example'],
+        kind: 12 as any,
+        language: 'python',
+        filePath: '/workspace/test_unittest.py',
+        workspaceRoot: '/workspace'
+    };
+
+    try {
+        const debugConfig = await languageRegistry.generateDebugConfig(unittestSymbol);
+        console.log('Generated unittest debug config:', JSON.stringify(debugConfig, null, 2));
+
+        if (debugConfig.module === 'unittest') {
+            console.log('✅ Unittest configuration generated successfully!');
+
+            if (debugConfig.purpose && debugConfig.purpose.includes('debug-test')) {
+                console.log('✅ Purpose attribute for unittest debugging is set');
+            }
+
+            if (debugConfig.subProcess === true) {
+                console.log('✅ SubProcess support enabled for unittest');
+            }
+        }
+    } catch (error) {
+        console.error('❌ Error generating unittest debug config:', error);
+    }
+}
+
 async function testGoDebug() {
-    console.log('Testing Go debug configuration generation...');
+    console.log('\n=== Testing Go Debug Configuration Generation ===');
 
     // Test Go symbol
     const goSymbol: SymbolInfo = {
@@ -51,6 +102,14 @@ async function testGoDebug() {
         // Check basic properties
         if (debugConfig.type === 'go' && debugConfig.name.includes('TestExample')) {
             console.log('✅ Go debug configuration generated successfully!');
+
+            if (debugConfig.mode === 'test') {
+                console.log('✅ Test mode is set correctly');
+            }
+
+            if (debugConfig.args && debugConfig.args.includes('-test.run')) {
+                console.log('✅ Test run arguments are present');
+            }
         } else {
             console.log('❌ Go debug configuration has issues');
         }
@@ -60,8 +119,16 @@ async function testGoDebug() {
 }
 
 // Run tests
-testPythonDebug().then(() => {
-    testGoDebug().then(() => {
-        console.log('All tests completed!');
-    });
+async function runAllTests() {
+    console.log('🚀 Starting debug configuration tests...\n');
+
+    await testPythonDebug();
+    await testUnittestDebug();
+    await testGoDebug();
+
+    console.log('\n✅ All tests completed!');
+}
+
+runAllTests().catch(error => {
+    console.error('💥 Test execution failed:', error);
 });
