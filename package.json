@@ -121,9 +121,15 @@
             ],
             "editor/context": [
                 {
-                    "command": "tingly.debug.generateDebugCommand",
+                    "command": "tingly.debug.debugConfig.createFromFile",
+                    "title": "Tingly Debug from File",
                     "when": "resourceExtname =~ /\\.(js|ts|tsx|jsx|mjs|cjs|py|java|cpp|c|go|rs|php|rb|cs|html|htm|dart|ps1|sh|bash|zsh|fish|lua|ex|exs|kt|kts|scala|sc)$/",
                     "group": "tingly.debug@1"
+                },
+                {
+                    "command": "tingly.debug.generateDebugCommand",
+                    "when": "resourceExtname =~ /\\.(js|ts|tsx|jsx|mjs|cjs|py|java|cpp|c|go|rs|php|rb|cs|html|htm|dart|ps1|sh|bash|zsh|fish|lua|ex|exs|kt|kts|scala|sc)$/",
+                    "group": "tingly.debug@2"
                 }
             ],
             "explorer/context": [
