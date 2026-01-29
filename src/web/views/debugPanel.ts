@@ -222,10 +222,24 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
             console.log(`DebugConfigurationProvider: created ${items.length} DebugConfigurationItems`);
             return items;
         } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+
+            // Check if this is a "file not found" error - if so, return empty array
+            const isFileNotFound =
+                errorMessage.includes('Unable to resolve nonexistent file') ||
+                errorMessage.includes('file not found') ||
+                errorMessage.includes('does not exist') ||
+                errorMessage.includes('no such file') ||
+                errorMessage.includes('cannot open file');
+
+            if (isFileNotFound) {
+                console.log('launch.json not found in getConfigurations, returning empty array');
+                return [];
+            }
+
             console.error('Error reading launch.json configurations:', error);
 
-            // Return error item instead of empty array
-            const errorMessage = error instanceof Error ? error.message : String(error);
+            // Return error item instead of empty array for other errors
             const errorDetails = `Failed to load debug configurations from launch.json. Please check the file format and try again.\n\nError details: ${errorMessage}`;
 
             console.log(`Creating error item for: ${errorMessage}`);
@@ -276,7 +290,9 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
                 errorCode === 'ENOENT' ||
                 errorMessage.includes('file not found') ||
                 errorMessage.includes('does not exist') ||
-                errorMessage.includes('no such file');
+                errorMessage.includes('no such file') ||
+                errorMessage.includes('Unable to resolve nonexistent file') ||
+                errorMessage.includes('cannot open file');
 
             if (isFileNotFound) {
                 // File doesn't exist - this is a normal case, return empty array
