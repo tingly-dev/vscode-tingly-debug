@@ -221,13 +221,13 @@
         "@types/webpack-env": "^1.18.8",
         "@typescript-eslint/eslint-plugin": "^8.48.0",
         "@typescript-eslint/parser": "^8.48.0",
-        "@vscode/test-cli": "^0.0.12",
+        "@vscode/test-cli": "^0.0.11",
         "@vscode/test-electron": "^2.5.2",
         "@vscode/test-web": "^0.0.74",
         "@vscode/vsce": "^3.7.1",
         "assert": "^2.1.0",
         "eslint": "^9.39.1",
-        "mocha": "^11.7.5",
+        "mocha": "^11.3.0",
         "process": "^0.11.10",
         "ts-loader": "^9.5.4",
         "typescript": "^5.9.3",
@@ -236,7 +236,6 @@
     },
     "dependencies": {
         "@types/strip-json-comments": "^0.0.30",
-        "fs": "0.0.1-security",
         "strip-json-comments": "^5.0.3"
     }
 }
