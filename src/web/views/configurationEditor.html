@@ -836,9 +836,9 @@
                             <div
                                 class="help-popup"
                                 id="help-pythonPath"
-                            >Absolute path to the Python interpreter to use for debugging. If not specified, the debugger
-                                will use the system default Python or the interpreter configured in Python extension settings.
-                                This field is automatically detected when possible.</div>
+                            >Absolute path to the Python interpreter to use for debugging. This field is automatically
+                                detected from the Python extension each time you debug. It is shown here for reference
+                                only and is not saved to the configuration.</div>
                         </span>
                     </label>
                     <div style="flex: 1;">
@@ -850,6 +850,9 @@
                             style="background-color: var(--vscode-editor-inactiveSelectionBackground);"
                             readonly
                         >
+                        <div style="font-size: 11px; color: var(--vscode-descriptionForeground); margin-top: 2px;">
+                            ⓘ Automatically detected, not saved to launch.json
+                        </div>
                     </div>
                 </div>
                 <div class="field-group-with-help">
@@ -1281,16 +1284,15 @@
                 document.getElementById('configModule').value = data.config.module || '';
                 document.getElementById('configCwd').value = data.config.cwd || '';
                 document.getElementById('configJustMyCode').value = data.config.justMyCode !== undefined ? String(data.config.justMyCode) : '';
-                document.getElementById('configPythonPath').value = data.config.pythonPath || '';
 
                 // Show pythonPath field only for Python configurations
                 const pythonPathField = document.getElementById('pythonPathField');
                 if (data.config.type === 'python') {
                     pythonPathField.style.display = 'flex';
-                    // Add visual indicator if pythonPath is set
-                    if (data.config.pythonPath) {
-                        document.getElementById('configPythonPath').style.borderColor = 'var(--vscode-textLink-foreground)';
-                    }
+                    // For Python configs, show detected interpreter (this is informational only)
+                    // The actual pythonPath is added dynamically when debugging
+                    document.getElementById('configPythonPath').value = 'Auto-detected at debug time';
+                    document.getElementById('configPythonPath').style.borderColor = 'var(--vscode-descriptionForeground)';
                 } else {
                     pythonPathField.style.display = 'none';
                 }
@@ -1901,10 +1903,8 @@
                     config.module = configModule.value.trim();
                 }
 
-                const configPythonPath = document.getElementById('configPythonPath');
-                if (configPythonPath && configPythonPath.value.trim()) {
-                    config.pythonPath = configPythonPath.value.trim();
-                }
+                // Note: pythonPath is NOT saved to config, it's only for display
+                // The pythonPath is dynamically added at debug time by PythonEnvironmentResolver
 
                 const configCwd = document.getElementById('configCwd');
                 if (configCwd && configCwd.value.trim()) {

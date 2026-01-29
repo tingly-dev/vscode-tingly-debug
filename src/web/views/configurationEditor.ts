@@ -77,7 +77,6 @@ export class ConfigurationEditor {
                             postDebugTask: configData.properties.postDebugTask,
                             env: configData.properties.env || {},
                             envFile: configData.properties.envFile || '',
-                            pythonPath: configData.properties.pythonPath || '',
                             properties: (() => {
                                 const result = { ...configData.properties };
                                 delete result.env;
@@ -468,7 +467,6 @@ export class ConfigurationEditor {
                                     postDebugTask: configData.properties.postDebugTask,
                                     env: configData.properties.env || {},
                                     envFile: configData.properties.envFile || '',
-                                    pythonPath: configData.properties.pythonPath || '',
                                     properties: (() => {
                                         const result = { ...configData.properties };
                                         delete result.env;
