@@ -311,27 +311,39 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
         }
     }
 
-    async addConfiguration(config: LaunchConfiguration): Promise<void> {
+    async addConfiguration(config: LaunchConfiguration, autoCreate: boolean = true): Promise<void> {
         try {
-            // Check if launch.json exists and prompt user to create it
-            if (!await this.ensureLaunchJsonExists('with this configuration', true)) {
-                return; // User cancelled or file can't be created
-            }
-
             const launchUri = vscode.Uri.file(this.launchJsonPath);
 
+            // Try to read existing file
+            let existingContent: string | undefined;
             try {
-                // Try to read existing file
                 const document = await vscode.workspace.openTextDocument(launchUri);
-                const existingContent = document.getText();
+                existingContent = document.getText();
+            } catch {
+                // File doesn't exist, that's fine
+            }
 
-                // Use simplified JSONC utility to add configuration
+            if (existingContent !== undefined) {
+                // File exists, add configuration to it
                 const newContent = addLaunchConfiguration(existingContent, config);
-
                 await vscode.workspace.fs.writeFile(launchUri, new TextEncoder().encode(newContent));
                 this.refresh();
-            } catch (error) {
-                // If reading fails, create new file with the configuration
+            } else {
+                // File doesn't exist, create new file with the configuration
+                if (!autoCreate) {
+                    // If autoCreate is disabled, prompt user first
+                    const createFile = await vscode.window.showInformationMessage(
+                        `launch.json does not exist. Would you like to create it with this configuration?`,
+                        'Create',
+                        'Cancel'
+                    );
+
+                    if (createFile !== 'Create') {
+                        return; // User cancelled
+                    }
+                }
+                // Create new file with the configuration
                 const launchJson: LaunchJson = {
                     version: "0.2.0",
                     configurations: [config]
