@@ -1,0 +1,745 @@
+/**
+ * Configuration Editor - Main Script
+ * Modular JavaScript for VSCode webview
+ */
+
+// Global state
+const state = {
+    initialConfig: '',
+    isDirty: false,
+    envRowIndex: 0,
+    commonTypes: [],
+    vscode: acquireVsCodeApi()
+};
+
+/**
+ * DOM utilities
+ */
+const DOM = {
+    $(selector) {
+        return document.querySelector(selector);
+    },
+    $$(selector) {
+        return document.querySelectorAll(selector);
+    },
+    getById(id) {
+        return document.getElementById(id);
+    },
+    getValue(id) {
+        const el = this.getById(id);
+        return el ? el.value.trim() : '';
+    },
+    setValue(id, value) {
+        const el = this.getById(id);
+        if (el) el.value = value;
+    },
+    show(id) {
+        const el = this.getById(id);
+        if (el) el.style.display = '';
+    },
+    hide(id) {
+        const el = this.getById(id);
+        if (el) el.style.display = 'none';
+    }
+};
+
+/**
+ * VSCode API communication
+ */
+const VSCode = {
+    postMessage(command, data = {}) {
+        state.vscode.postMessage({ command, ...data });
+    },
+    onMessage(callback) {
+        window.addEventListener('message', event => callback(event.data));
+    }
+};
+
+/**
+ * Array field handling
+ */
+const ArrayField = {
+    setMode(propertyName, mode) {
+        const singleInput = DOM.getById(`prop-${propertyName}`) || DOM.getById(`config${propertyName.charAt(0).toUpperCase() + propertyName.slice(1)}`);
+        const listInput = DOM.getById(`prop-${propertyName}-list`) || DOM.getById(`config${propertyName.charAt(0).toUpperCase() + propertyName.slice(1)}-list`);
+        const container = DOM.getById(`array-container-${propertyName}`);
+        const singleBtn = container?.querySelector('.array-mode-btn:first-child');
+        const listBtn = container?.querySelector('.array-mode-btn:last-child');
+
+        if (mode === 'single') {
+            if (listInput && singleInput) {
+                const listValue = listInput.value.trim();
+                if (listValue) {
+                    const arrayValue = this.parseListToArray(listValue);
+                    singleInput.value = JSON.stringify(arrayValue);
+                } else {
+                    singleInput.value = '[]';
+                }
+            }
+            if (singleInput) singleInput.style.display = 'block';
+            if (listInput) listInput.style.display = 'none';
+            if (singleBtn) singleBtn.classList.add('active');
+            if (listBtn) listBtn.classList.remove('active');
+        } else {
+            if (singleInput && listInput) {
+                const singleValue = singleInput.value.trim();
+                if (singleValue) {
+                    try {
+                        const arrayValue = JSON.parse(singleValue);
+                        listInput.value = Array.isArray(arrayValue)
+                            ? arrayValue.map(String).join('\n')
+                            : String(arrayValue);
+                    } catch {
+                        listInput.value = singleValue.split(',').map(s => s.trim()).filter(Boolean).join('\n');
+                    }
+                }
+            }
+            if (singleInput) singleInput.style.display = 'none';
+            if (listInput) listInput.style.display = 'block';
+            if (singleBtn) singleBtn.classList.remove('active');
+            if (listBtn) listBtn.classList.add('active');
+        }
+        ConfigPreview.update();
+    },
+
+    parseListToArray(listValue) {
+        return listValue.split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0)
+            .map(line => {
+                try { return JSON.parse(line); }
+                catch { return line; }
+            });
+    },
+
+    getValue(key) {
+        const singleInput = DOM.getById(`prop-${key}`) || DOM.getById(`config${key.charAt(0).toUpperCase() + key.slice(1)}`);
+        const listInput = DOM.getById(`prop-${key}-list`) || DOM.getById(`config${key.charAt(0).toUpperCase() + key.slice(1)}-list`);
+
+        if (!singleInput) return [];
+
+        const isListMode = listInput && listInput.style.display !== 'none';
+
+        if (isListMode && listInput) {
+            const listValue = listInput.value.trim();
+            return listValue ? this.parseListToArray(listValue) : [];
+        }
+
+        const singleValue = singleInput.value.trim();
+        if (!singleValue) return [];
+
+        try {
+            const parsed = JSON.parse(singleValue);
+            return Array.isArray(parsed) ? parsed : [parsed];
+        } catch {
+            return singleValue.split(',').map(item => {
+                const trimmed = item.trim();
+                try { return JSON.parse(trimmed); }
+                catch { return trimmed; }
+            });
+        }
+    }
+};
+
+/**
+ * Environment variables table
+ */
+const EnvTable = {
+    populate(env) {
+        const tbody = DOM.getById('envTableBody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+        const entries = Object.entries(env);
+        state.envRowIndex = entries.length;
+
+        if (entries.length === 0) {
+            tbody.innerHTML = `<tr id="emptyEnvRow">
+                <td colspan="3" style="text-align: center; opacity: 0.6; padding: 20px;">
+                    No environment variables configured. Click "Add Variable" to get started.
+                </td>
+            </tr>`;
+        } else {
+            entries.forEach(([key, value], index) => {
+                this.addRow(key, value, index);
+            });
+        }
+    },
+
+    addRow(key = '', value = '', index = null) {
+        const tbody = DOM.getById('envTableBody');
+        if (!tbody) return;
+
+        const emptyRow = DOM.getById('emptyEnvRow');
+        if (emptyRow) emptyRow.remove();
+
+        const idx = index !== null ? index : state.envRowIndex++;
+        const displayValue = typeof value === 'string' ? value : JSON.stringify(value);
+
+        const row = document.createElement('tr');
+        row.setAttribute('data-index', idx);
+        row.innerHTML = `
+            <td><input type="text" id="env-key-${idx}" value="${this.escape(key)}" placeholder="Variable name"></td>
+            <td><input type="text" id="env-value-${idx}" value="${this.escape(displayValue)}" placeholder="Value"></td>
+            <td class="env-actions">
+                <button type="button" class="env-btn remove" data-action="remove-env" data-index="${idx}" title="Remove">🗑️</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+
+        row.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', () => ConfigPreview.update());
+        });
+
+        return row;
+    },
+
+    removeRow(index) {
+        const row = DOM.getById(`env-key-${index}`)?.closest('tr');
+        if (row) {
+            row.remove();
+            const tbody = DOM.getById('envTableBody');
+            if (tbody && tbody.children.length === 0) {
+                tbody.innerHTML = `<tr id="emptyEnvRow">
+                    <td colspan="3" style="text-align: center; opacity: 0.6; padding: 20px;">
+                        No environment variables configured. Click "Add Variable" to get started.
+                    </td>
+                </tr>`;
+            }
+            ConfigPreview.update();
+        }
+    },
+
+    getObject() {
+        const env = {};
+        DOM.$$('[id^="env-key-"]').forEach(input => {
+            const key = input.value.trim();
+            const index = input.id.split('-')[2];
+            const valueInput = DOM.getById(`env-value-${index}`);
+            if (key && valueInput) {
+                env[key] = valueInput.value.trim();
+            }
+        });
+        return env;
+    },
+
+    escape(str) {
+        return str.replace(/"/g, '&quot;');
+    }
+};
+
+/**
+ * Properties section
+ */
+const Properties = {
+    skippedFields: ['program', 'mode', 'args', 'module', 'cwd', 'justMyCode'],
+
+    populate(properties) {
+        const container = DOM.getById('propertiesContainer');
+        if (!container) return;
+
+        container.innerHTML = '';
+        Object.entries(properties).forEach(([key, value]) => {
+            if (!this.skippedFields.includes(key)) {
+                this.addField(key, value);
+            }
+        });
+    },
+
+    addField(key, value) {
+        const container = DOM.getById('propertiesContainer');
+        if (!container) return;
+
+        const isArray = this.isArrayProperty(key);
+        const fieldDiv = document.createElement('div');
+        fieldDiv.className = `field-group${isArray ? ' array-field' : ''}`;
+        fieldDiv.setAttribute('data-property', key);
+
+        fieldDiv.innerHTML = `
+            <label for="prop-${key}">${key}${isArray ? '<span class="array-badge">Array</span>' : ''}</label>
+            <div class="field-content">
+                ${isArray ? this.createArrayInput(key, value) : this.createTextInput(key, value)}
+                <button type="button" class="remove-btn" data-action="remove-property" data-key="${key}">🗑️</button>
+            </div>
+        `;
+
+        container.appendChild(fieldDiv);
+        fieldDiv.querySelectorAll('input, textarea').forEach(el => {
+            el.addEventListener('input', () => ConfigPreview.update());
+        });
+    },
+
+    createTextInput(key, value) {
+        const displayValue = typeof value === 'string' ? value : JSON.stringify(value);
+        return `<input type="text" id="prop-${key}" name="${key}" value="${displayValue.replace(/"/g, '&quot;')}" placeholder="Enter ${key}">`;
+    },
+
+    createArrayInput(key, value) {
+        const arrayValues = Array.isArray(value) ? value : [];
+        const listValues = arrayValues.map(String).join('\n');
+        const useListMode = arrayValues.length > 1 || arrayValues.some(item => String(item).length > 30);
+
+        return `
+            <div class="array-input-container" id="array-container-${key}">
+                <div class="array-input-mode">
+                    <div class="array-mode-buttons">
+                        <button type="button" class="array-mode-btn ${!useListMode ? 'active' : ''}"
+                            data-action="array-mode" data-property="${key}" data-mode="single" title="Single line">
+                            <span class="codicon codicon-symbol-string"></span>
+                        </button>
+                        <button type="button" class="array-mode-btn ${useListMode ? 'active' : ''}"
+                            data-action="array-mode" data-property="${key}" data-mode="list" title="List input">
+                            <span class="codicon codicon-list-flat"></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="array-input-content">
+                    <input type="text" id="prop-${key}" name="${key}"
+                        placeholder='JSON array (e.g., ["value1", "value2"])'
+                        class="array-single-input" style="${useListMode ? 'display:none' : ''}">
+                    <textarea id="prop-${key}-list" name="${key}-list"
+                        placeholder="One value per line" class="array-list-input"
+                        style="${useListMode ? '' : 'display:none'}">${this.escapeHtml(listValues)}</textarea>
+                </div>
+            </div>
+        `;
+    },
+
+    removeField(key) {
+        const field = DOM.getById(`prop-${key}`)?.closest('.field-group');
+        if (field) {
+            field.remove();
+            ConfigPreview.update();
+        }
+    },
+
+    isArrayProperty(key) {
+        return ['args', 'outFiles', 'configurations', 'inputs'].includes(key);
+    },
+
+    escapeHtml(text) {
+        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+};
+
+/**
+ * Configuration preview
+ */
+const ConfigPreview = {
+    update() {
+        try {
+            const config = FormConfig.get();
+            const preview = DOM.getById('jsonPreview');
+            if (preview) {
+                preview.textContent = JSON.stringify(config, null, 2);
+            }
+            this.checkChanges();
+        } catch (error) {
+            console.error('Error updating preview:', error);
+        }
+    },
+
+    checkChanges() {
+        const currentConfig = JSON.stringify(FormConfig.get(), null, 2);
+        state.isDirty = currentConfig !== state.initialConfig;
+
+        if (state.isDirty) {
+            document.title = document.title.replace(/^[●]?\s*/, '● ');
+        } else {
+            document.title = document.title.replace(/^[●]\s*/, '');
+        }
+    }
+};
+
+/**
+ * Form configuration builder
+ */
+const FormConfig = {
+    get() {
+        const config = {};
+        const form = DOM.getById('configForm');
+        if (!form) return config;
+
+        // Basic fields
+        const basicFields = ['name', 'type', 'request'];
+        basicFields.forEach(field => {
+            const value = DOM.getValue(`config${field.charAt(0).toUpperCase() + field.slice(1)}`);
+            if (value) config[field] = value;
+        });
+
+        // Special fields
+        this.addIfPresent(config, 'program', DOM.getValue('configProgram'));
+        this.addIfPresent(config, 'mode', DOM.getValue('configMode'));
+        this.addIfPresent(config, 'module', DOM.getValue('configModule'));
+        this.addIfPresent(config, 'cwd', DOM.getValue('configCwd'));
+
+        // justMyCode as boolean
+        const justMyCode = DOM.getValue('configJustMyCode').toLowerCase();
+        if (justMyCode) {
+            config.justMyCode = justMyCode === 'true' ? true : justMyCode === 'false' ? false : justMyCode;
+        }
+
+        // Args array
+        const args = ArrayField.getValue('args');
+        if (args.length > 0) config.args = args;
+
+        // Console and tasks
+        this.addIfPresent(config, 'console', DOM.getValue('configConsole'));
+        this.addIfPresent(config, 'internalConsoleOptions', DOM.getValue('configInternalConsole'));
+        this.addIfPresent(config, 'preLaunchTask', DOM.getValue('configPreLaunchTask'));
+        this.addIfPresent(config, 'postDebugTask', DOM.getValue('configPostDebugTask'));
+
+        // Environment
+        const env = EnvTable.getObject();
+        if (Object.keys(env).length > 0) config.env = env;
+
+        const envFile = DOM.getValue('envFile');
+        if (envFile) config.envFile = envFile;
+
+        // Custom properties
+        DOM.$$('#propertiesContainer .field-group').forEach(field => {
+            const key = field.getAttribute('data-property');
+            if (key && !Properties.skippedFields.includes(key)) {
+                if (Properties.isArrayProperty(key)) {
+                    const arr = ArrayField.getValue(key);
+                    if (arr.length > 0) config[key] = arr;
+                } else {
+                    const input = DOM.getById(`prop-${key}`);
+                    if (input && input.value.trim()) {
+                        try { config[key] = JSON.parse(input.value); }
+                        catch { config[key] = input.value.trim(); }
+                    }
+                }
+            }
+        });
+
+        return config;
+    },
+
+    addIfPresent(obj, key, value) {
+        if (value) obj[key] = value;
+    }
+};
+
+/**
+ * Help popup management
+ */
+const HelpPopup = {
+    toggle(event, fieldName) {
+        event.stopPropagation();
+        this.hideAll(`help-${fieldName}`);
+        const popup = DOM.getById(`help-${fieldName}`);
+        if (popup) {
+            this.position(popup, event.target);
+            popup.classList.toggle('visible');
+        }
+    },
+
+    show(event, fieldName) {
+        const popup = DOM.getById(`help-${fieldName}`);
+        if (popup) {
+            this.position(popup, event.target);
+            popup.classList.add('visible');
+        }
+    },
+
+    hide(fieldName) {
+        const popup = DOM.getById(`help-${fieldName}`);
+        if (popup) popup.classList.remove('visible');
+    },
+
+    hideAll(exceptId = null) {
+        DOM.$$('.help-popup.visible').forEach(popup => {
+            if (popup.id !== exceptId) popup.classList.remove('visible');
+        });
+    },
+
+    position(popup, target) {
+        const rect = target.getBoundingClientRect();
+        popup.style.bottom = `${window.innerHeight - rect.top + 8}px`;
+        popup.style.left = `${rect.left + rect.width / 2}px`;
+        popup.style.transform = 'translateX(-50%)';
+    }
+};
+
+/**
+ * Error display
+ */
+const ErrorDisplay = {
+    show(message) {
+        const el = DOM.getById('errorMessage');
+        if (el) {
+            el.textContent = message;
+            el.classList.add('visible');
+        }
+    },
+
+    hide() {
+        const el = DOM.getById('errorMessage');
+        if (el) el.classList.remove('visible');
+    }
+};
+
+/**
+ * Page initialization
+ */
+const Page = {
+    init() {
+        this.setupEventListeners();
+        this.notifyReady();
+    },
+
+    setupEventListeners() {
+        // Event delegation for dynamic content
+        document.addEventListener('click', this.handleClick.bind(this));
+
+        // Help popup close on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.help-icon')) HelpPopup.hideAll();
+        });
+
+        // Escape key closes popups
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') HelpPopup.hideAll();
+        });
+
+        // Before unload warning
+        window.addEventListener('beforeunload', (e) => {
+            if (state.isDirty) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        // VSCode messages
+        VSCode.onMessage(this.handleVSCodeMessage.bind(this));
+    },
+
+    handleClick(e) {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+
+        const action = target.dataset.action;
+        const { property, mode, key, index } = target.dataset;
+
+        switch (action) {
+            case 'array-mode':
+                ArrayField.setMode(property, mode);
+                break;
+            case 'remove-env':
+                EnvTable.removeRow(parseInt(index));
+                break;
+            case 'remove-property':
+                Properties.removeField(key);
+                break;
+            case 'add-env':
+                EnvTable.addRow();
+                DOM.getById(`env-key-${state.envRowIndex - 1}`)?.focus();
+                break;
+            case 'add-property':
+                this.addProperty();
+                break;
+            case 'save':
+                this.save();
+                break;
+            case 'run':
+                this.run();
+                break;
+            case 'debug':
+                this.debug();
+                break;
+            case 'reset':
+                this.reset();
+                break;
+            case 'open-launch-json':
+                VSCode.postMessage('openLaunchJson');
+                break;
+            case 'browse-program':
+                VSCode.postMessage('browseProgram', { currentPath: DOM.getValue('configProgram') || '${workspaceFolder}' });
+                break;
+            case 'browse-cwd':
+                VSCode.postMessage('browseCwd', { currentPath: DOM.getValue('configCwd') || '${workspaceFolder}' });
+                break;
+            case 'open-env-file':
+                VSCode.postMessage('browseEnvFile', { currentPath: DOM.getValue('envFile') || '${workspaceFolder}/.env' });
+                break;
+        }
+    },
+
+    handleVSCodeMessage(message) {
+        switch (message.command) {
+            case 'initialize':
+                this.initializeForm(message.data);
+                break;
+            case 'showError':
+                ErrorDisplay.show(message.message);
+                break;
+            case 'setEnvFile':
+                DOM.setValue('envFile', message.path);
+                ConfigPreview.update();
+                break;
+            case 'setProgram':
+                DOM.setValue('configProgram', message.path);
+                ConfigPreview.update();
+                break;
+            case 'setCwd':
+                DOM.setValue('configCwd', message.path);
+                ConfigPreview.update();
+                break;
+            case 'saveSuccess':
+                state.initialConfig = JSON.stringify(message.config, null, 2);
+                state.isDirty = false;
+                document.title = document.title.replace(/^[●]\s*/, '');
+                ErrorDisplay.hide();
+                ConfigPreview.update();
+                break;
+            case 'refreshUI':
+                setTimeout(() => ConfigPreview.update(), 100);
+                break;
+        }
+    },
+
+    initializeForm(data) {
+        state.initialConfig = JSON.stringify(data.config, null, 2);
+        state.commonTypes = data.commonTypes || [];
+
+        // Set basic fields
+        DOM.setValue('configName', data.config.name || '');
+        DOM.setValue('configType', data.config.type || '');
+        DOM.setValue('configRequest', data.config.request || '');
+        DOM.setValue('configProgram', data.config.program || '');
+        DOM.setValue('configMode', data.config.mode || '');
+        DOM.setValue('configModule', data.config.module || '');
+        DOM.setValue('configCwd', data.config.cwd || '');
+        DOM.setValue('configJustMyCode', data.config.justMyCode !== undefined ? String(data.config.justMyCode) : '');
+
+        // Python path field
+        const pythonPathField = DOM.getById('pythonPathField');
+        if (pythonPathField) {
+            pythonPathField.style.display = data.config.type === 'python' ? 'flex' : 'none';
+        }
+
+        // Set dropdowns
+        this.setDropdownValue('configJustMyCodeSelect', data.config.justMyCode);
+        this.setDropdownValue('configRequestSelect', data.config.request);
+        this.setDropdownValue('configConsoleSelect', data.config.console);
+        this.setDropdownValue('configInternalConsoleSelect', data.config.internalConsoleOptions);
+
+        // Console and tasks
+        DOM.setValue('configConsole', data.config.console || '');
+        DOM.setValue('configInternalConsole', data.config.internalConsoleOptions || '');
+        DOM.setValue('configPreLaunchTask', data.config.preLaunchTask || '');
+        DOM.setValue('configPostDebugTask', data.config.postDebugTask || '');
+
+        // Args
+        this.initializeArgs(data.config.args || []);
+
+        // Type dropdown
+        this.populateTypeDropdown(data.config.type);
+
+        // Environment
+        EnvTable.populate(data.config.env || {});
+        DOM.setValue('envFile', data.config.envFile || '');
+
+        // Properties
+        Properties.populate(data.config.properties || {});
+
+        // Update preview
+        setTimeout(() => ConfigPreview.update(), 100);
+    },
+
+    initializeArgs(argsValue) {
+        if (Array.isArray(argsValue) && argsValue.length > 0) {
+            const listValues = argsValue.map(String).join('\n');
+            const useListMode = argsValue.length > 1 || argsValue.some(item => String(item).length > 30);
+
+            DOM.setValue('configArgs', JSON.stringify(argsValue));
+            DOM.setValue('configArgs-list', listValues);
+
+            setTimeout(() => {
+                if (useListMode) ArrayField.setMode('args', 'list');
+            }, 0);
+        } else {
+            DOM.setValue('configArgs', Array.isArray(argsValue) ? JSON.stringify(argsValue) : '');
+        }
+    },
+
+    populateTypeDropdown(currentType) {
+        const select = DOM.getById('configTypeSelect');
+        if (!select) return;
+
+        const descriptions = {
+            'python': 'Python - Python debugging (Well supported)',
+            'go': 'Go - Go language debugging (Well supported)'
+        };
+
+        select.innerHTML = '<option value="">Select preset...</option>';
+        state.commonTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = descriptions[type] || type;
+            option.selected = type === currentType;
+            select.appendChild(option);
+        });
+    },
+
+    setDropdownValue(id, value) {
+        const select = DOM.getById(id);
+        if (select && value !== undefined && value !== null) {
+            select.value = String(value);
+        }
+    },
+
+    addProperty() {
+        const name = DOM.getValue('newPropName');
+        const value = DOM.getValue('newPropValue');
+
+        if (!name) {
+            alert('Please enter a property name');
+            return;
+        }
+
+        Properties.addField(name, value);
+        DOM.setValue('newPropName', '');
+        DOM.setValue('newPropValue', '');
+        ConfigPreview.update();
+    },
+
+    notifyReady() {
+        VSCode.postMessage('ready');
+    },
+
+    save() {
+        ErrorDisplay.hide();
+        VSCode.postMessage('saveConfiguration', { config: FormConfig.get() });
+    },
+
+    run() {
+        ErrorDisplay.hide();
+        VSCode.postMessage('runConfiguration', { config: FormConfig.get() });
+    },
+
+    debug() {
+        ErrorDisplay.hide();
+        VSCode.postMessage('debugConfiguration', { config: FormConfig.get() });
+    },
+
+    reset() {
+        if (state.isDirty && !confirm('Are you sure you want to reset all changes?')) {
+            return;
+        }
+        VSCode.postMessage('resetConfiguration', { configName: DOM.getValue('configName') || 'unknown' });
+    }
+};
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => Page.init());
+} else {
+    Page.init();
+}
+
+// Expose for inline handlers (to be removed after full migration)
+window.toggleHelp = (e, field) => HelpPopup.toggle(e, field);
+window.setArrayMode = (prop, mode) => ArrayField.setMode(prop, mode);
+window.updateJsonPreviewFromList = (prop) => ConfigPreview.update();

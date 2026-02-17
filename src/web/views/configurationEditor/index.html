@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Settings</title>
+    <link rel="stylesheet" href="{{stylesUri}}">
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <h2>Debug Configuration</h2>
+            <div class="header-actions">
+                <button type="button" class="btn btn-secondary" data-action="open-launch-json" title="Open launch.json file">
+                    <span class="codicon codicon-file-json"></span> launch.json
+                </button>
+                <button type="button" class="btn btn-primary" data-action="run" title="Run without breakpoints">
+                    <span class="codicon codicon-play"></span> Run
+                </button>
+                <button type="button" class="btn btn-primary" data-action="debug" title="Debug with breakpoints">
+                    <span class="codicon codicon-debug-alt"></span> Debug
+                </button>
+                <button type="button" class="btn btn-primary" data-action="save" title="Update configuration">
+                    <span class="codicon codicon-check"></span> Update
+                </button>
+            </div>
+        </header>
+
+        <form id="configForm">
+            <!-- Basic Information Section -->
+            <section class="section">
+                <div class="section-title">Basic Information</div>
+
+                <!-- Name -->
+                <div class="field-group-with-help">
+                    <label for="configName">
+                        name
+                        <span class="help-icon" onclick="toggleHelp(event, 'name')">ⓘ
+                            <div class="help-popup" id="help-name">
+                                The reader-friendly name to appear in the Debug launch configuration dropdown.
+                                This should be descriptive and unique.
+                            </div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <input type="text" id="configName" name="name" placeholder="Configuration name">
+                    </div>
+                </div>
+
+                <!-- Type -->
+                <div class="field-group-with-help">
+                    <label for="configType">
+                        type
+                        <span class="help-icon" onclick="toggleHelp(event, 'type')">ⓘ
+                            <div class="help-popup" id="help-type">
+                                The type of debugger to use. Every installed debug extension introduces a type
+                                (e.g., node for Node.js, python for Python, chrome for Chrome debugging).
+                            </div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="hybrid-input">
+                            <input type="text" id="configType" name="type" placeholder="Enter configuration type...">
+                            <div class="or-divider">or</div>
+                            <select id="configTypeSelect" class="enhanced-select">
+                                <option value="">Select preset...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Request -->
+                <div class="field-group-with-help">
+                    <label for="configRequest">
+                        request
+                        <span class="help-icon" onclick="toggleHelp(event, 'request')">ⓘ
+                            <div class="help-popup" id="help-request">
+                                The request type of this launch configuration. Currently supports 'launch'
+                                to start a new process or 'attach' to connect to a running process.
+                            </div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="hybrid-input">
+                            <input type="text" id="configRequest" name="request" placeholder="Enter request type...">
+                            <div class="or-divider">or</div>
+                            <select id="configRequestSelect" class="enhanced-select">
+                                <option value="">Select preset...</option>
+                                <option value="launch">🚀 Launch - Start a new process</option>
+                                <option value="attach">🔗 Attach - Connect to running process</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Program -->
+                <div class="field-group-with-help">
+                    <label for="configProgram">
+                        program
+                        <span class="help-icon" onclick="toggleHelp(event, 'program')">ⓘ
+                            <div class="help-popup" id="help-program">
+                                The executable or script to run when launching the debugger.
+                                Can use variables like ${workspaceFolder}, ${file}, etc.
+                            </div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="hybrid-input">
+                            <input type="text" id="configProgram" name="program" placeholder="Enter program path...">
+                            <button type="button" class="btn btn-secondary" data-action="browse-program">Browse</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mode -->
+                <div class="field-group-with-help">
+                    <label for="configMode">
+                        mode
+                        <span class="help-icon" onclick="toggleHelp(event, 'mode')">ⓘ
+                            <div class="help-popup" id="help-mode">
+                                The debug mode. Some debuggers support different modes like 'debug' vs 'release'.
+                                Check your debugger documentation for available options.
+                            </div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <input type="text" id="configMode" name="mode" placeholder="Enter debug mode...">
+                    </div>
+                </div>
+
+                <!-- Args -->
+                <div class="field-group-with-help">
+                    <label for="configArgs">
+                        args
+                        <span class="help-icon" onclick="toggleHelp(event, 'args')">ⓘ
+                            <div class="help-popup" id="help-args">
+                                Command line arguments passed to the program. Enter as JSON array or
+                                use variables like ${file}, ${workspaceFolder}, etc.
+                            </div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="array-input-container" id="array-container-args">
+                            <div class="array-input-mode">
+                                <div class="array-mode-buttons">
+                                    <button type="button" class="array-mode-btn active" data-action="array-mode" data-property="args" data-mode="single" title="Single line input">
+                                        <span class="codicon codicon-symbol-string"></span>
+                                    </button>
+                                    <button type="button" class="array-mode-btn" data-action="array-mode" data-property="args" data-mode="list" title="List input">
+                                        <span class="codicon codicon-list-flat"></span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="array-input-content">
+                                <input type="text" id="configArgs" name="args" placeholder='JSON array (e.g., ["arg1", "arg2"])' class="array-single-input">
+                                <textarea id="configArgs-list" name="args-list" placeholder="One argument per line" class="array-list-input" style="display: none;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Module -->
+                <div class="field-group-with-help">
+                    <label for="configModule">
+                        module
+                        <span class="help-icon" onclick="toggleHelp(event, 'module')">ⓘ
+                            <div class="help-popup" id="help-module">
+                                Module path or name to debug. Used by some debuggers to specify which module to load.
+                            </div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <input type="text" id="configModule" name="module" placeholder="Enter module path or name...">
+                    </div>
+                </div>
+
+                <!-- Python Path (conditional) -->
+                <div class="field-group-with-help" id="pythonPathField" style="display: none;">
+                    <label for="configPythonPath">
+                        pythonPath
+                        <span class="help-icon" onclick="toggleHelp(event, 'pythonPath')">ⓘ
+                            <div class="help-popup" id="help-pythonPath">
+                                Absolute path to the Python interpreter. This field is automatically detected
+                                from the Python extension and is not saved to the configuration.
+                            </div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <input type="text" id="configPythonPath" name="pythonPath" placeholder="Auto-detected" readonly>
+                        <div class="field-description">ⓘ Automatically detected, not saved to launch.json</div>
+                    </div>
+                </div>
+
+                <!-- CWD -->
+                <div class="field-group-with-help">
+                    <label for="configCwd">
+                        cwd
+                        <span class="help-icon" onclick="toggleHelp(event, 'cwd')">ⓘ
+                            <div class="help-popup" id="help-cwd">
+                                The working directory for the debug session. Defaults to workspace folder.
+                                Can use variables like ${workspaceFolder}.
+                            </div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="hybrid-input">
+                            <input type="text" id="configCwd" name="cwd" placeholder="Enter working directory...">
+                            <button type="button" class="btn btn-secondary" data-action="browse-cwd">Browse</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- justMyCode -->
+                <div class="field-group-with-help">
+                    <label for="configJustMyCode">
+                        justMyCode
+                        <span class="help-icon" onclick="toggleHelp(event, 'justMyCode')">ⓘ
+                            <div class="help-popup" id="help-justMyCode">
+                                Only debug user-written code and skip system/library code.
+                                When enabled, the debugger will only stop in user code.
+                            </div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="hybrid-input">
+                            <input type="text" id="configJustMyCode" name="justMyCode" placeholder="Enter true or false...">
+                            <div class="or-divider">or</div>
+                            <select id="configJustMyCodeSelect" class="enhanced-select">
+                                <option value="">Select preset...</option>
+                                <option value="true">✅ Enabled - Only debug user code</option>
+                                <option value="false">❌ Disabled - Debug all code</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Environment Variables Section -->
+            <section class="section">
+                <div class="section-title">
+                    Environment Variables
+                    <span class="help-icon" onclick="toggleHelp(event, 'environment')" style="margin-left: 10px;">ⓘ
+                        <div class="help-popup" id="help-environment">
+                            Environment variables for the debug session. Set key-value pairs or use envFile
+                            to load variables from a .env file.
+                        </div>
+                    </span>
+                </div>
+
+                <div class="file-input-group">
+                    <label for="envFile" style="flex: 0 0 auto; min-width: 80px;">envFile</label>
+                    <input type="text" id="envFile" name="envFile" placeholder="${workspaceFolder}/.env">
+                    <button type="button" class="btn btn-secondary" data-action="open-env-file">Open</button>
+                </div>
+
+                <div class="field-group-with-help">
+                    <label for="env">
+                        env
+                        <span class="help-icon" onclick="toggleHelp(event, 'env')">ⓘ
+                            <div class="help-popup" id="help-env">
+                                Environment variables as key-value pairs for the debug session.
+                            </div>
+                        </span>
+                    </label>
+                </div>
+
+                <table class="env-table" id="envTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 35%;">Variable Name</th>
+                            <th style="width: 45%;">Value</th>
+                            <th style="width: 20%;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="envTableBody">
+                        <tr id="emptyEnvRow">
+                            <td colspan="3" style="text-align: center; opacity: 0.6; padding: 20px;">
+                                No environment variables configured. Click "Add Variable" to get started.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="env-actions">
+                    <button type="button" class="env-btn" data-action="add-env">➕ Add Variable</button>
+                </div>
+            </section>
+
+            <!-- Session Configuration Section -->
+            <section class="section">
+                <div class="section-title">Session Configuration</div>
+
+                <!-- Console -->
+                <div class="field-group-with-help">
+                    <label for="configConsole">
+                        console
+                        <span class="help-icon" onclick="toggleHelp(event, 'console')">ⓘ
+                            <div class="help-popup" id="help-console">
+                                What kind of console to use. Options: internalConsole (VSCode debug console),
+                                integratedTerminal (VSCode terminal), or externalTerminal (system terminal).
+                            </div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="hybrid-input">
+                            <input type="text" id="configConsole" name="console" placeholder="Enter console type...">
+                            <div class="or-divider">or</div>
+                            <select id="configConsoleSelect" class="enhanced-select">
+                                <option value="">Select preset...</option>
+                                <option value="internalConsole">📟 Internal Console</option>
+                                <option value="integratedTerminal">💻 Integrated Terminal</option>
+                                <option value="externalTerminal">🖥️ External Terminal</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Internal Console Options -->
+                <div class="field-group-with-help">
+                    <label for="configInternalConsole">
+                        internalConsoleOptions
+                        <span class="help-icon" onclick="toggleHelp(event, 'internalConsole')">ⓘ
+                            <div class="help-popup" id="help-internalConsole">
+                                Controls visibility of Debug console panel. Options: neverOpen,
+                                openOnSessionStart, or openOnFirstSessionStart.
+                            </div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="hybrid-input">
+                            <input type="text" id="configInternalConsole" name="internalConsoleOptions" placeholder="Enter option...">
+                            <div class="or-divider">or</div>
+                            <select id="configInternalConsoleSelect" class="enhanced-select">
+                                <option value="">Select preset...</option>
+                                <option value="neverOpen">❌ Never Open</option>
+                                <option value="openOnSessionStart">🔄 Open on Start</option>
+                                <option value="openOnFirstSessionStart">🔔 Open on First Start</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pre-launch Task -->
+                <div class="field-group-with-help">
+                    <label for="configPreLaunchTask">
+                        preLaunchTask
+                        <span class="help-icon" onclick="toggleHelp(event, 'preLaunchTask')">ⓘ
+                            <div class="help-popup" id="help-preLaunchTask">
+                                Task to run before debug session starts. Set to task label from tasks.json
+                                or use ${defaultBuildTask} for your default build task.
+                            </div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="hybrid-input">
+                            <input type="text" id="configPreLaunchTask" name="preLaunchTask" placeholder="Enter task name...">
+                            <div class="or-divider">or</div>
+                            <select id="configPreLaunchTaskSelect" class="enhanced-select">
+                                <option value="">Select preset...</option>
+                                <option value="${defaultBuildTask}">🔨 Default Build Task</option>
+                                <option value="npm: build">📦 NPM: Build</option>
+                                <option value="npm: compile">📝 NPM: Compile</option>
+                                <option value="npm: test">🧪 NPM: Test</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post Debug Task -->
+                <div class="field-group-with-help">
+                    <label for="configPostDebugTask">
+                        postDebugTask
+                        <span class="help-icon" onclick="toggleHelp(event, 'postDebugTask')">ⓘ
+                            <div class="help-popup" id="help-postDebugTask">
+                                Task to run at the end of a debug session. Set to task label from tasks.json
+                                for cleanup or post-processing.
+                            </div>
+                        </span>
+                    </label>
+                    <div style="flex: 1;">
+                        <div class="hybrid-input">
+                            <input type="text" id="configPostDebugTask" name="postDebugTask" placeholder="Enter task name...">
+                            <div class="or-divider">or</div>
+                            <select id="configPostDebugTaskSelect" class="enhanced-select">
+                                <option value="">Select preset...</option>
+                                <option value="npm: clean">🧹 NPM: Clean</option>
+                                <option value="npm: lint">🔍 NPM: Lint</option>
+                                <option value="npm: coverage">📊 NPM: Coverage</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="errorMessage" class="error-message"></div>
+            </section>
+
+            <!-- Configuration Properties Section -->
+            <section class="section">
+                <div class="section-title">
+                    Configuration Properties
+                    <span class="help-icon" onclick="toggleHelp(event, 'properties')" style="margin-left: 10px;">ⓘ
+                        <div class="help-popup" id="help-properties">
+                            Additional properties specific to your debugger type. Common properties include:
+                            program, args, cwd, port (for attach), and debugger-specific options.
+                        </div>
+                    </span>
+                </div>
+                <div id="propertiesContainer" class="properties-section"></div>
+            </section>
+
+            <!-- Add New Property Section -->
+            <section class="section add-field-section">
+                <div class="section-title">Add New Property</div>
+                <div class="add-field-group">
+                    <input type="text" id="newPropName" placeholder="Property name">
+                    <input type="text" id="newPropValue" placeholder="Property value">
+                    <button type="button" class="btn btn-primary" data-action="add-property">Add Property</button>
+                </div>
+            </section>
+
+            <!-- JSON Preview Section -->
+            <section class="section" style="border-top: 1px solid var(--vscode-panel-border); padding-top: 20px; margin-top: 20px;">
+                <div class="section-title">JSON Preview</div>
+                <div id="jsonPreview" class="json-view"></div>
+            </section>
+
+            <!-- Button Group -->
+            <div class="button-group">
+                <button type="button" class="btn btn-primary" data-action="save">Update</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="{{scriptUri}}"></script>
+</body>
+
+</html>

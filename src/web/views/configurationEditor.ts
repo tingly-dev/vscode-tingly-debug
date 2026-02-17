@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { ConfigurationData, LaunchCompound, LaunchConfiguration } from '../core/types';
-import htmlTemplate from './configurationEditor.html';
+import htmlTemplate from './configurationEditor/index.html';
+import cssStyles from './configurationEditor/styles.css';
+import jsScript from './configurationEditor/script.txt';
 import { DebugConfigurationProvider } from './debugPanel';
 
 
@@ -688,7 +690,10 @@ API_URL=http://localhost:3000
     }
 
     private static getConfigurationSettingsWebviewContent(): string {
-        return htmlTemplate;
+        // Inline CSS and JS directly into the HTML template
+        return htmlTemplate
+            .replace('{{stylesUri}}', 'data:text/css,' + encodeURIComponent(cssStyles))
+            .replace('{{scriptUri}}', 'data:text/javascript,' + encodeURIComponent(jsScript));
     }
 
 
