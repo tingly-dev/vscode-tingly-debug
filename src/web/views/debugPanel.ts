@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import { ClickBehavior, LaunchCompound, LaunchConfiguration, LaunchJson } from '../core/types';
 import { parseJSONC, parseJSONCConfigurations, serializeJSONC, updateLaunchConfiguration, addLaunchConfiguration, removeLaunchConfiguration } from '../util/jsoncUtils';
+import { createModuleLogger } from '../util/logger';
+
+const log = createModuleLogger('DebugPanel');
 
 export class DebugConfigurationItem extends vscode.TreeItem {
     constructor(
@@ -17,7 +20,7 @@ export class DebugConfigurationItem extends vscode.TreeItem {
         // Set command based on click behavior configuration
         // Default to 'openSettings' if clickBehavior is not set
         const behavior = clickBehavior || 'openSettings';
-        console.log(`DebugConfigurationItem: behavior=${behavior} for config=${config.name}`);
+        log.debug(`DebugConfigurationItem: behavior=${behavior} for config=${config.name}`);
 
         if (behavior === 'openSettings') {
             this.command = {
@@ -25,9 +28,7 @@ export class DebugConfigurationItem extends vscode.TreeItem {
                 title: 'Open Configuration Settings',
                 arguments: [this]
             };
-            console.log(`DebugConfigurationItem: Set command for ${config.name}`);
-        } else {
-            console.log(`DebugConfigurationItem: No command set for ${config.name} due to behavior=${behavior}`);
+            log.debug(`DebugConfigurationItem: Set command for ${config.name}`);
         }
     }
 
@@ -46,7 +47,7 @@ export class DebugConfigurationItem extends vscode.TreeItem {
 
         const launchConfig = config as LaunchConfiguration;
         const type = launchConfig.type.toLowerCase();
-        console.log("type", type);
+        log.debug("type", type);
 
         // Map configuration types to appropriate language icons
         switch (type) {
@@ -207,10 +208,10 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
     public async getConfigurations(): Promise<DebugConfigurationItem[] | DebugErrorItem[]> {
         try {
             const configurations = await this.readConfigurationsOnly();
-            const config = vscode.workspace.getConfiguration('ddd');
+            const config = vscode.workspace.getConfiguration('tingly.debug');
             const clickBehavior = config.get<ClickBehavior>('clickBehavior', 'openSettings');
 
-            console.log(`DebugConfigurationProvider: read ${configurations.length} configurations, clickBehavior=${clickBehavior}`);
+            log.debug(`DebugConfigurationProvider: read ${configurations.length} configurations, clickBehavior=${clickBehavior}`);
 
             const items: DebugConfigurationItem[] = [];
 
@@ -219,7 +220,7 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
                 items.push(new DebugConfigurationItem(config, vscode.TreeItemCollapsibleState.None, clickBehavior));
             }
 
-            console.log(`DebugConfigurationProvider: created ${items.length} DebugConfigurationItems`);
+            log.debug(`DebugConfigurationProvider: created ${items.length} DebugConfigurationItems`);
             return items;
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
@@ -233,16 +234,16 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
                 errorMessage.includes('cannot open file');
 
             if (isFileNotFound) {
-                console.log('launch.json not found in getConfigurations, returning empty array');
+                log.debug('launch.json not found in getConfigurations, returning empty array');
                 return [];
             }
 
-            console.error('Error reading launch.json configurations:', error);
+            log.error('Error reading launch.json configurations:', error);
 
             // Return error item instead of empty array for other errors
             const errorDetails = `Failed to load debug configurations from launch.json. Please check the file format and try again.\n\nError details: ${errorMessage}`;
 
-            console.log(`Creating error item for: ${errorMessage}`);
+            log.debug(`Creating error item for: ${errorMessage}`);
 
             const errorConfig: ErrorConfiguration = {
                 name: 'Configuration Error',
@@ -296,12 +297,12 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
 
             if (isFileNotFound) {
                 // File doesn't exist - this is a normal case, return empty array
-                console.log('launch.json not found, returning empty configurations');
+                log.debug('launch.json not found, returning empty configurations');
                 return [];
             }
 
             // For other errors (parsing errors, permission issues, etc.), throw to let the caller handle it
-            console.warn('Failed to read launch.json configurations:', error);
+            log.warn('Failed to read launch.json configurations:', error);
             throw error;
         }
     }

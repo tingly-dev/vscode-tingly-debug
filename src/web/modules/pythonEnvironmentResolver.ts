@@ -2,6 +2,9 @@
 // Integrates with VS Code Python extension to get active interpreter
 
 import * as vscode from 'vscode';
+import { createModuleLogger } from '../util/logger';
+
+const log = createModuleLogger('PythonResolver');
 
 /**
  * Python environment resolver
@@ -16,26 +19,26 @@ export class PythonEnvironmentResolver {
         // Priority 1: Use Python Extension API
         const extensionInterpreter = await this.getFromPythonExtension();
         if (extensionInterpreter) {
-            console.log('[Tingly] Using interpreter from Python extension:', extensionInterpreter);
+            log.debug('Using interpreter from Python extension:', extensionInterpreter);
             return extensionInterpreter;
         }
 
         // Priority 2: Use Python Environments Extension API
         const envInterpreter = await this.getFromEnvironmentsExtension();
         if (envInterpreter) {
-            console.log('[Tingly] Using interpreter from Environments extension:', envInterpreter);
+            log.debug('Using interpreter from Environments extension:', envInterpreter);
             return envInterpreter;
         }
 
         // Priority 3: Use workspace configuration
         const configInterpreter = this.getFromWorkspaceConfig();
         if (configInterpreter) {
-            console.log('[Tingly] Using interpreter from workspace config:', configInterpreter);
+            log.debug('Using interpreter from workspace config:', configInterpreter);
             return configInterpreter;
         }
 
         // Fallback: Return undefined, let Python debugger use system default
-        console.log('[Tingly] No specific interpreter configured, using system default Python');
+        log.debug('No specific interpreter configured, using system default Python');
         return undefined;
     }
 
@@ -46,7 +49,7 @@ export class PythonEnvironmentResolver {
         try {
             const extension = vscode.extensions.getExtension('ms-python.python');
             if (!extension) {
-                console.log('[Tingly] Python extension not found');
+                log.debug('Python extension not found');
                 return null;
             }
 
@@ -59,7 +62,7 @@ export class PythonEnvironmentResolver {
                 return settings?.pythonPath || null;
             }
         } catch (error) {
-            console.warn('[Tingly] Python extension API error:', error);
+            log.warn('Python extension API error:', error);
         }
 
         return null;
@@ -72,7 +75,7 @@ export class PythonEnvironmentResolver {
         try {
             const extension = vscode.extensions.getExtension('ms-python.python-environments');
             if (!extension) {
-                console.log('[Tingly] Python Environments extension not found');
+                log.debug('Python Environments extension not found');
                 return null;
             }
 
@@ -84,7 +87,7 @@ export class PythonEnvironmentResolver {
                 return env?.executable?.uri?.fsPath || null;
             }
         } catch (error) {
-            console.warn('[Tingly] Python Environments extension API error:', error);
+            log.warn('Python Environments extension API error:', error);
         }
 
         return null;

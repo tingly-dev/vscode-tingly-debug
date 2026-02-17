@@ -6,6 +6,9 @@ import { SymbolInfo } from '../config/debugCommandGenerator';
 import { pythonModule } from './python';
 import { golangModule } from './golang';
 import { javascriptModule } from './javascript';
+import { createModuleLogger } from '../util/logger';
+
+const log = createModuleLogger('Registry');
 
 export class LanguageModuleRegistry {
     private static instance: LanguageModuleRegistry;
@@ -30,12 +33,12 @@ export class LanguageModuleRegistry {
 
     public register(module: LanguageModule): void {
         this.modules.set(module.language, module);
-        console.log(`Registered language module: ${module.displayName}`);
+        log.debug(`Registered language module: ${module.displayName}`);
     }
 
     public unregister(language: string): void {
         if (this.modules.delete(language)) {
-            console.log(`Unregistered language module: ${language}`);
+            log.debug(`Unregistered language module: ${language}`);
         }
     }
 

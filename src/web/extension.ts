@@ -3,6 +3,9 @@
 import * as vscode from 'vscode';
 import { registerCommandHandlers } from './core/commandHandlers';
 import { DebugConfigurationProvider, DebugConfigurationItem, DebugErrorItem } from './views/debugPanel';
+import { createModuleLogger } from './util/logger';
+
+const log = createModuleLogger('Extension');
 
 // This method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
@@ -27,21 +30,21 @@ export function activate(context: vscode.ExtensionContext) {
         try {
             await provider.refresh();
         } catch (error) {
-            console.error('Failed to refresh on file change:', error);
+            log.error('Failed to refresh on file change:', error);
         }
     });
     fileSystemWatcher.onDidCreate(async () => {
         try {
             await provider.refresh();
         } catch (error) {
-            console.error('Failed to refresh on file creation:', error);
+            log.error('Failed to refresh on file creation:', error);
         }
     });
     fileSystemWatcher.onDidDelete(async () => {
         try {
             await provider.refresh();
         } catch (error) {
-            console.error('Failed to refresh on file deletion:', error);
+            log.error('Failed to refresh on file deletion:', error);
         }
     });
 
@@ -53,7 +56,7 @@ export function activate(context: vscode.ExtensionContext) {
             try {
                 await provider.refresh();
             } catch (error) {
-                console.error('Failed to refresh on configuration change:', error);
+                log.error('Failed to refresh on configuration change:', error);
             }
         }
     });

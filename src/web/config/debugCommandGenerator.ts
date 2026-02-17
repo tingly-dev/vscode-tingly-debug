@@ -2,6 +2,9 @@
 
 import * as vscode from 'vscode';
 import { languageRegistry } from '../modules/registry';
+import { createModuleLogger } from '../util/logger';
+
+const log = createModuleLogger('SymbolDetector');
 
 export interface SymbolInfo {
     name: string;
@@ -61,12 +64,12 @@ export class SymbolDetector {
             };
 
             // Enhanced logging for developers
-            console.error('=== Symbol Provider Error Details ===');
-            console.error('Error:', errorMessage);
-            console.error('Stack:', errorStack);
-            console.error('Document Info:', JSON.stringify(documentInfo, null, 2));
-            console.error('VSCode Version:', vscode.version);
-            console.error('=====================================');
+            log.error('=== Symbol Provider Error Details ===');
+            log.error('Error:', errorMessage);
+            log.error('Stack:', errorStack);
+            log.error('Document Info:', JSON.stringify(documentInfo, null, 2));
+            log.error('VSCode Version:', vscode.version);
+            log.error('=====================================');
 
             // Show user-friendly message with option to view details
             const showDetails = 'Show Details';
@@ -97,7 +100,7 @@ export class SymbolDetector {
 
         if (!symbols || symbols.length === 0) {
             vscode.window.showInformationMessage(`No symbols found in this document ${document.uri}. Make sure the file has valid functions, classes, or methods and appropriate language extensions are installed.`);
-            console.log('Debug Command Generator: No symbols found in document:', document.uri.fsPath);
+            log.debug('Debug Command Generator: No symbols found in document:', document.uri.fsPath);
             return null;
         }
 
@@ -145,7 +148,7 @@ export class SymbolDetector {
 
         if (symbolPath.length === 0) {
             vscode.window.showWarningMessage(`Unable to identify a valid test function or method to debug. Please select a test function, class, or method name.`);
-            console.log('Debug Command Generator: No symbol path found for selection:', selectedText || 'word at cursor');
+            log.debug('Debug Command Generator: No symbol path found for selection:', selectedText || 'word at cursor');
             return null;
         }
 
@@ -406,7 +409,7 @@ export class CommandGenerator {
             // Convert LanguageDebugConfig to CommandTemplate for backward compatibility
             return this.convertToCommandTemplate(debugConfig);
         } catch (error) {
-            console.warn('Language module system failed, falling back to legacy system:', error);
+            log.warn('Language module system failed, falling back to legacy system:', error);
             // Fallback to legacy system
             const framework = await FrameworkDetector.detectFramework(symbol);
             if (!framework) {
@@ -506,7 +509,7 @@ export class CommandGenerator {
             // Try to use new language module system first
             return await languageRegistry.generateDebugConfig(symbol);
         } catch (error) {
-            console.warn('Language module system failed for debug config, falling back to legacy system:', error);
+            log.warn('Language module system failed for debug config, falling back to legacy system:', error);
 
             // Fallback to legacy system
             const baseConfig: any = {

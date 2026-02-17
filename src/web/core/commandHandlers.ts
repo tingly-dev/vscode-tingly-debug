@@ -5,6 +5,9 @@ import { languageRegistry } from '../modules/registry';
 import { ConfigurationEditor } from '../views/configurationEditor';
 import { DebugConfigurationItem, DebugConfigurationProvider, DebugErrorItem } from '../views/debugPanel';
 import { LaunchConfiguration } from './types';
+import { createModuleLogger } from '../util/logger';
+
+const log = createModuleLogger('Commands');
 
 export function registerCommandHandlers(
     context: vscode.ExtensionContext,
@@ -69,7 +72,7 @@ export function registerCommandHandlers(
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             vscode.window.showErrorMessage(`Failed to generate command: ${errorMessage}`);
-            console.error('Command generation error:', error);
+            log.error('Command generation error:', error);
         }
     }
 
@@ -207,7 +210,7 @@ export function registerCommandHandlers(
 
                     // Check if there's an error reading configurations
                     if (hasConfigurationError(configItems)) {
-                        console.error('Failed to open configuration editor due to configuration error:', configItems[0].config.error.message);
+                        log.error('Failed to open configuration editor due to configuration error:', configItems[0].config.error.message);
                         return;
                     }
 
@@ -216,7 +219,7 @@ export function registerCommandHandlers(
                         await ConfigurationEditor.openConfigurationEditor(createdItem.config, debugProvider);
                     }
                 } catch (error) {
-                    console.error('Failed to open configuration editor:', error);
+                    log.error('Failed to open configuration editor:', error);
                 }
             }, 500);
         } catch (error) {
@@ -288,7 +291,7 @@ export function registerCommandHandlers(
                     const workspaceFolder = workspaceFolders?.[0] || undefined;
                     await vscode.debug.startDebugging(workspaceFolder, debugConfig);
                 } catch (error) {
-                    console.error('Failed to start debug session:', error);
+                    log.error('Failed to start debug session:', error);
                     vscode.window.showErrorMessage(`Failed to run configuration: ${error}`);
                 }
             }, 500);
@@ -361,7 +364,7 @@ export function registerCommandHandlers(
                     const workspaceFolder = workspaceFolders?.[0] || undefined;
                     await vscode.debug.startDebugging(workspaceFolder, debugConfig);
                 } catch (error) {
-                    console.error('Failed to start debug session:', error);
+                    log.error('Failed to start debug session:', error);
                     vscode.window.showErrorMessage(`Failed to debug configuration: ${error}`);
                 }
             }, 500);
@@ -406,7 +409,7 @@ export function registerCommandHandlers(
 
                 } catch (error) {
                     const errorMessage = error instanceof Error ? error.message : String(error);
-                    console.error('Refresh error:', error);
+                    log.error('Refresh error:', error);
 
                     // Check if user cancelled the refresh
                     if (errorMessage.includes('cancelled by user')) {
@@ -418,7 +421,7 @@ export function registerCommandHandlers(
             });
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
-            console.error('Refresh initialization error:', error);
+            log.error('Refresh initialization error:', error);
             vscode.window.showErrorMessage(`Failed to initialize refresh: ${errorMessage}`);
         }
     });
@@ -434,28 +437,34 @@ export function registerCommandHandlers(
             return;
         }
 
-        const typeItems = [
-            { label: 'Node.js', description: 'Launch Node.js application' },
-            { label: 'Python', description: 'Launch Python application' },
-            { label: 'Chrome', description: 'Launch Chrome browser' },
-            { label: 'Edge', description: 'Launch Edge browser' },
-            { label: 'Firefox', description: 'Launch Firefox browser' },
-            { label: 'Extension Host', description: 'Launch VS Code Extension Host' },
-            { label: 'CoreCLR (.NET)', description: 'Launch .NET application' },
-            { label: 'Custom', description: 'Custom debug configuration' }
+        const typeItems: (vscode.QuickPickItem & { value: string })[] = [
+            { label: 'Languages', kind: vscode.QuickPickItemKind.Separator, value: '' },
+            { label: '$(code) Node.js', description: 'Launch Node.js application', value: 'node' },
+            { label: '$(python) Python', description: 'Launch Python application', value: 'python' },
+            { label: '$(go) Go', description: 'Launch Go application', value: 'go' },
+            { label: 'Browsers', kind: vscode.QuickPickItemKind.Separator, value: '' },
+            { label: '$(browser) Chrome', description: 'Launch Chrome browser', value: 'chrome' },
+            { label: '$(browser) Edge', description: 'Launch Edge browser', value: 'msedge' },
+            { label: '$(browser) Firefox', description: 'Launch Firefox browser', value: 'firefox' },
+            { label: 'VS Code', kind: vscode.QuickPickItemKind.Separator, value: '' },
+            { label: '$(extensions) Extension Host', description: 'Launch VS Code Extension Host', value: 'extensionHost' },
+            { label: 'Other', kind: vscode.QuickPickItemKind.Separator, value: '' },
+            { label: '$(server) CoreCLR (.NET)', description: 'Launch .NET application', value: 'coreclr' },
+            { label: '$(gear) Custom', description: 'Custom debug configuration', value: 'node' }
         ];
 
         const selectedType = await vscode.window.showQuickPick(typeItems, {
-            placeHolder: 'Select configuration type'
+            placeHolder: 'Select configuration type',
+            matchOnDescription: true
         });
 
-        if (selectedType === undefined) {
+        if (selectedType === undefined || !selectedType.value) {
             return;
         }
 
         const requestType = await vscode.window.showQuickPick([
-            { label: 'Launch', description: 'Start a new debug session' },
-            { label: 'Attach', description: 'Attach to a running process' }
+            { label: '$(play) Launch', description: 'Start a new debug session' },
+            { label: '$(debug) Attach', description: 'Attach to a running process' }
         ], {
             placeHolder: 'Select request type'
         });
@@ -464,21 +473,10 @@ export function registerCommandHandlers(
             return;
         }
 
-        const typeMap: Record<string, string> = {
-            'Node.js': 'node',
-            'Python': 'python',
-            'Chrome': 'chrome',
-            'Edge': 'msedge',
-            'Firefox': 'firefox',
-            'Extension Host': 'extensionHost',
-            'CoreCLR (.NET)': 'coreclr',
-            'Custom': 'node'
-        };
-
         const newConfig: LaunchConfiguration = {
             name: name,
-            type: typeMap[selectedType.label],
-            request: requestType.label.toLowerCase() as 'launch' | 'attach'
+            type: selectedType.value,
+            request: requestType.label.includes('Launch') ? 'launch' : 'attach'
         };
 
         try {
@@ -602,7 +600,7 @@ export function registerCommandHandlers(
         try {
             cursorSymbol = await SymbolDetector.getSelectedSymbolPath();
         } catch (error) {
-            console.log('Symbol detection failed:', error);
+            log.debug('Symbol detection failed:', error);
         }
 
         // Show options for debug from file vs debug from symbol
@@ -646,7 +644,7 @@ export function registerCommandHandlers(
             configurations = await provider.readConfigurationsOnly();
         } catch (error) {
             // launch.json doesn't exist, that's fine - we'll create it
-            console.log('No existing launch.json found, creating new one');
+            log.debug('No existing launch.json found, creating new one');
         }
 
         while (configurations.some(config => config.name === finalConfigName)) {
@@ -678,7 +676,7 @@ export function registerCommandHandlers(
             newConfig = await languageRegistry.generateDebugConfig(symbolInfo);
         } catch (error) {
             // Fallback to default config if framework detection fails
-            console.log('Framework detection failed, using default config:', error);
+            log.debug('Framework detection failed, using default config:', error);
             newConfig = module.defaultConfig(currentFile, workspaceRoot);
         }
 
@@ -705,7 +703,7 @@ export function registerCommandHandlers(
                         await ConfigurationEditor.openConfigurationEditor(createdItem.config, provider);
                     }
                 } catch (error) {
-                    console.error('Failed to open configuration editor:', error);
+                    log.error('Failed to open configuration editor:', error);
                 }
             }, 500); // Small delay to ensure the UI updates
         } catch (error) {
@@ -715,7 +713,7 @@ export function registerCommandHandlers(
 
     // Open settings command (using configuration editor)
     const openSettingsCommand = vscode.commands.registerCommand('tingly.debug.debugConfig.openSettings', async (item: DebugConfigurationItem) => {
-        console.log('openSettingsCommand triggered for item:', item.config.name);
+        log.debug('openSettingsCommand triggered for item:', item.config.name);
         await ConfigurationEditor.openConfigurationEditor(item.config, provider);
     });
 
@@ -786,12 +784,12 @@ async function showSymbolSelector(): Promise<SymbolInfo | null> {
         };
 
         // Enhanced logging for developers
-        console.error('=== Symbol Selector Error Details ===');
-        console.error('Error:', errorMessage);
-        console.error('Stack:', errorStack);
-        console.error('Document Info:', JSON.stringify(documentInfo, null, 2));
-        console.error('VSCode Version:', vscode.version);
-        console.error('=======================================');
+        log.error('=== Symbol Selector Error Details ===');
+        log.error('Error:', errorMessage);
+        log.error('Stack:', errorStack);
+        log.error('Document Info:', JSON.stringify(documentInfo, null, 2));
+        log.error('VSCode Version:', vscode.version);
+        log.error('=======================================');
 
         // Show user-friendly message with option to view details
         const showDetails = 'Show Details';
@@ -1004,6 +1002,6 @@ async function handleGenerateDirectoryDebugConfig(uri: vscode.Uri, debugProvider
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         vscode.window.showErrorMessage(`Failed to generate debug configuration: ${errorMessage}`);
-        console.error('Directory debug config generation error:', error);
+        log.error('Directory debug config generation error:', error);
     }
 }

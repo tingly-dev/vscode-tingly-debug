@@ -3,6 +3,10 @@
  * Provides parsing and serialization functionality for JSONC format
  */
 
+import { createModuleLogger } from './logger';
+
+const log = createModuleLogger('JSONC');
+
 /**
  * Parse JSONC text and return the data
  */
@@ -26,7 +30,7 @@ export function parseJSONCConfigurations(text: string): any[] {
         return data.configurations || [];
     } catch (error) {
         // If parsing fails, throw the error to let the caller handle it
-        console.error('Failed to parse launch.json configurations:', error);
+        log.error('Failed to parse launch.json configurations:', error);
         throw error;
     }
 }
