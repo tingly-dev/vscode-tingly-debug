@@ -46,6 +46,10 @@ const webExtensionConfig = {
 			use: [{
 				loader: 'ts-loader'
 			}]
+		}, {
+			test: /\.(html|css|txt)$/,
+			type: 'asset/source',
+			exclude: /node_modules/
 		}]
 	},
 	plugins: [
