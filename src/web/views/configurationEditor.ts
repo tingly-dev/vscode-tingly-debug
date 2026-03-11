@@ -163,6 +163,12 @@ export class ConfigurationEditor {
         }
 
         const launchConfig = config as LaunchConfiguration;
+        // Use a mutable reference to track the current name (may change after save)
+        const currentConfigState = {
+            name: launchConfig.name,
+            type: launchConfig.type,
+            request: launchConfig.request
+        };
         const panelId = `debugConfigSettings_${launchConfig.name}`;
 
         console.log(`Opening configuration editor tab for "${launchConfig.name}"`);
@@ -194,11 +200,11 @@ export class ConfigurationEditor {
         // Store the panel in our tracking map
         ConfigurationEditor.openPanels.set(panelId, panel);
 
-        // Prepare configuration data for the webview
+        // Prepare configuration data for the webview (use mutable reference)
         const configData: ConfigurationData = {
-            name: launchConfig.name,
-            type: launchConfig.type,
-            request: launchConfig.request,
+            name: currentConfigState.name,
+            type: currentConfigState.type,
+            request: currentConfigState.request,
             properties: { ...launchConfig }
         };
 
@@ -282,8 +288,8 @@ export class ConfigurationEditor {
                                 return;
                             }
 
-                            // Save the configuration first
-                            await provider.updateConfiguration(configData.name, configToRun);
+                            // Save the configuration first (use current state name which may have changed)
+                            await provider.updateConfiguration(currentConfigState.name, configToRun);
 
                             // Disable all breakpoints for run mode
                             await vscode.commands.executeCommand('workbench.debug.viewlet.action.disableAllBreakpoints');
@@ -319,8 +325,8 @@ export class ConfigurationEditor {
                                 return;
                             }
 
-                            // Save the configuration first
-                            await provider.updateConfiguration(configData.name, configToDebug);
+                            // Save the configuration first (use current state name which may have changed)
+                            await provider.updateConfiguration(currentConfigState.name, configToDebug);
 
                             // Enable all breakpoints for debug mode
                             await vscode.commands.executeCommand('workbench.debug.viewlet.action.enableAllBreakpoints');
@@ -357,7 +363,7 @@ export class ConfigurationEditor {
                             }
 
                             const newName = updatedConfig.name;
-                            const oldName = configData.name;
+                            const oldName = currentConfigState.name;
 
                             // Check if name has changed and if there's a conflict
                             if (newName !== oldName) {
@@ -379,8 +385,32 @@ export class ConfigurationEditor {
                                 }
                             }
 
-                            await provider.updateConfiguration(launchConfig.name, updatedConfig);
+                            await provider.updateConfiguration(currentConfigState.name, updatedConfig);
                             vscode.window.showInformationMessage(`Configuration "${newName}" updated successfully!`);
+
+                            // Update internal state after successful save with new name
+                            if (newName !== oldName) {
+                                // Update the current config state
+                                currentConfigState.name = newName;
+                                currentConfigState.type = updatedConfig.type;
+                                currentConfigState.request = updatedConfig.request;
+
+                                // Update configData reference
+                                configData.name = newName;
+                                configData.type = updatedConfig.type;
+                                configData.request = updatedConfig.request;
+
+                                // Migrate the panel in openPanels Map
+                                const oldPanelId = `debugConfigSettings_${oldName}`;
+                                const newPanelId = `debugConfigSettings_${newName}`;
+                                ConfigurationEditor.openPanels.delete(oldPanelId);
+                                ConfigurationEditor.openPanels.set(newPanelId, panel);
+
+                                // Update panel title
+                                panel.title = `Configuration Settings: ${newName}`;
+
+                                console.log(`Configuration renamed from "${oldName}" to "${newName}"`);
+                            }
 
                             // Send success message to update UI state
                             panel.webview.postMessage({
