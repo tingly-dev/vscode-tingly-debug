@@ -422,26 +422,31 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
                 return; // User cancelled or file can't be created
             }
 
-            const launchJson = await this.readLaunchJson();
+            const launchUri = vscode.Uri.file(this.launchJsonPath);
+            const document = await vscode.workspace.openTextDocument(launchUri);
+            const existingContent = document.getText();
 
             if ('configurations' in config) {
-                // Duplicate compound
+                // Duplicate compound — compounds are not handled by addLaunchConfiguration,
+                // so fall back to a full rewrite only for this case
+                const launchJson = await this.readLaunchJson();
                 const newCompound: LaunchCompound = {
                     name: `${config.name} Copy`,
                     configurations: [...(config as LaunchCompound).configurations]
                 };
                 launchJson.compounds = launchJson.compounds || [];
                 launchJson.compounds.push(newCompound);
+                await this.writeLaunchJson(launchJson);
             } else {
-                // Duplicate configuration
+                // Duplicate regular configuration — use text-level append to preserve comments
                 const newConfig: LaunchConfiguration = {
                     ...config,
                     name: `${config.name} Copy`
                 };
-                launchJson.configurations.push(newConfig);
+                const newContent = addLaunchConfiguration(existingContent, newConfig);
+                await vscode.workspace.fs.writeFile(launchUri, new TextEncoder().encode(newContent));
             }
 
-            await this.writeLaunchJson(launchJson);
             this.refresh();
         } catch (error) {
             throw new Error(`Failed to duplicate configuration: ${error instanceof Error ? error.message : String(error)}`);

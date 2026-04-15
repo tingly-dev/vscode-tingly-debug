@@ -171,36 +171,36 @@
                     "group": "1_modification"
                 }
             ]
-        }
-    },
-    "configuration": {
-        "title": "Debug Configurations",
-        "properties": {
-            "tingly.debug.clickBehavior": {
-                "type": "string",
-                "enum": [
-                    "openSettings",
-                    "none"
-                ],
-                "default": "openSettings",
-                "description": "Behavior when clicking on configuration items in the tree view",
-                "enumDescriptions": [
-                    "Open configuration settings when clicking an item",
-                    "No action when clicking an item (use toolbar buttons instead)"
-                ]
-            },
-            "tingly.debug.nameCollisionSuffixStyle": {
-                "type": "string",
-                "enum": [
-                    "index",
-                    "timestamp"
-                ],
-                "default": "index",
-                "description": "Style of suffix to add when configuration name collides",
-                "enumDescriptions": [
-                    "Use numeric index (e.g., '- 1', '- 2')",
-                    "Use timestamp (e.g., '-20250811-129900')"
-                ]
+        },
+        "configuration": {
+            "title": "Debug Configurations",
+            "properties": {
+                "tingly.debug.clickBehavior": {
+                    "type": "string",
+                    "enum": [
+                        "openSettings",
+                        "none"
+                    ],
+                    "default": "openSettings",
+                    "description": "Behavior when clicking on configuration items in the tree view",
+                    "enumDescriptions": [
+                        "Open configuration settings when clicking an item",
+                        "No action when clicking an item (use toolbar buttons instead)"
+                    ]
+                },
+                "tingly.debug.nameCollisionSuffixStyle": {
+                    "type": "string",
+                    "enum": [
+                        "index",
+                        "timestamp"
+                    ],
+                    "default": "index",
+                    "description": "Style of suffix to add when configuration name collides",
+                    "enumDescriptions": [
+                        "Use numeric index (e.g., '- 1', '- 2')",
+                        "Use timestamp (e.g., '-20250811-129900')"
+                    ]
+                }
             }
         }
     },

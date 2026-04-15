@@ -12,7 +12,8 @@ const log = createModuleLogger('Commands');
 export function registerCommandHandlers(
     context: vscode.ExtensionContext,
     provider: DebugConfigurationProvider,
-    treeView: vscode.TreeView<DebugConfigurationItem | DebugErrorItem>
+    treeView: vscode.TreeView<DebugConfigurationItem | DebugErrorItem>,
+    outputChannel: vscode.OutputChannel
 ): void {
 
     /**
@@ -101,7 +102,7 @@ export function registerCommandHandlers(
      * Generate a unique configuration name by adding suffix based on user preference
      */
     async function generateUniqueConfigurationName(baseName: string, debugProvider: DebugConfigurationProvider): Promise<string | null> {
-        const config = vscode.workspace.getConfiguration('tingly-debug');
+        const config = vscode.workspace.getConfiguration('tingly.debug');
         const suffixStyle = config.get<string>('nameCollisionSuffixStyle', 'index');
 
         try {
@@ -450,7 +451,7 @@ export function registerCommandHandlers(
             { label: '$(extensions) Extension Host', description: 'Launch VS Code Extension Host', value: 'extensionHost' },
             { label: 'Other', kind: vscode.QuickPickItemKind.Separator, value: '' },
             { label: '$(server) CoreCLR (.NET)', description: 'Launch .NET application', value: 'coreclr' },
-            { label: '$(gear) Custom', description: 'Custom debug configuration', value: 'node' }
+            { label: '$(gear) Custom', description: 'Custom debug configuration', value: '__custom__' }
         ];
 
         const selectedType = await vscode.window.showQuickPick(typeItems, {
@@ -460,6 +461,18 @@ export function registerCommandHandlers(
 
         if (selectedType === undefined || !selectedType.value) {
             return;
+        }
+
+        let configType = selectedType.value;
+        if (configType === '__custom__') {
+            const customType = await vscode.window.showInputBox({
+                placeHolder: 'e.g. lldb, cppvsdbg, php, ruby',
+                prompt: 'Enter the debug type string'
+            });
+            if (!customType) {
+                return;
+            }
+            configType = customType;
         }
 
         const requestType = await vscode.window.showQuickPick([
@@ -475,7 +488,7 @@ export function registerCommandHandlers(
 
         const newConfig: LaunchConfiguration = {
             name: name,
-            type: selectedType.value,
+            type: configType,
             request: requestType.label.includes('Launch') ? 'launch' : 'attach'
         };
 
@@ -800,7 +813,6 @@ async function showSymbolSelector(): Promise<SymbolInfo | null> {
 
         if (result === showDetails) {
             // Show detailed error information in output channel
-            const outputChannel = vscode.window.createOutputChannel('DDD Debug Errors');
             outputChannel.appendLine('=== Symbol Selector Error Details ===');
             outputChannel.appendLine(`Timestamp: ${new Date().toISOString()}`);
             outputChannel.appendLine(`Error: ${errorMessage}`);

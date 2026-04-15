@@ -9,6 +9,10 @@ const log = createModuleLogger('Extension');
 
 // This method is called when your extension is activated
 export function activate(context: vscode.ExtensionContext) {
+    // Create shared output channel for error details
+    const outputChannel = vscode.window.createOutputChannel('Tingly Debug Errors');
+    context.subscriptions.push(outputChannel);
+
     // Create debug configuration provider
     const provider = new DebugConfigurationProvider();
 
@@ -19,7 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
     }) as vscode.TreeView<DebugConfigurationItem | DebugErrorItem>;
 
     // Register all command handlers
-    registerCommandHandlers(context, provider, treeView);
+    registerCommandHandlers(context, provider, treeView, outputChannel);
 
     // Register tree view
     context.subscriptions.push(treeView);
