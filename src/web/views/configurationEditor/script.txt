@@ -142,23 +142,19 @@ const ArrayField = {
 };
 
 /**
- * Environment variables table
+ * Environment variables list (new flat-row layout)
  */
 const EnvTable = {
     populate(env) {
-        const tbody = DOM.getById('envTableBody');
-        if (!tbody) return;
+        const list = DOM.getById('envList');
+        if (!list) return;
 
-        tbody.innerHTML = '';
+        list.innerHTML = '';
         const entries = Object.entries(env);
         state.envRowIndex = entries.length;
 
         if (entries.length === 0) {
-            tbody.innerHTML = `<tr id="emptyEnvRow">
-                <td colspan="3" style="text-align: center; opacity: 0.6; padding: 20px;">
-                    No environment variables configured. Click "Add Variable" to get started.
-                </td>
-            </tr>`;
+            list.innerHTML = `<div class="env-empty" id="emptyEnvRow">No environment variables — click Add to get started.</div>`;
         } else {
             entries.forEach(([key, value], index) => {
                 this.addRow(key, value, index);
@@ -167,8 +163,8 @@ const EnvTable = {
     },
 
     addRow(key = '', value = '', index = null) {
-        const tbody = DOM.getById('envTableBody');
-        if (!tbody) return;
+        const list = DOM.getById('envList');
+        if (!list) return;
 
         const emptyRow = DOM.getById('emptyEnvRow');
         if (emptyRow) emptyRow.remove();
@@ -176,16 +172,15 @@ const EnvTable = {
         const idx = index !== null ? index : state.envRowIndex++;
         const displayValue = typeof value === 'string' ? value : JSON.stringify(value);
 
-        const row = document.createElement('tr');
+        const row = document.createElement('div');
+        row.className = 'env-row';
         row.setAttribute('data-index', idx);
         row.innerHTML = `
-            <td><input type="text" id="env-key-${idx}" value="${this.escape(key)}" placeholder="Variable name"></td>
-            <td><input type="text" id="env-value-${idx}" value="${this.escape(displayValue)}" placeholder="Value"></td>
-            <td class="env-actions">
-                <button type="button" class="env-btn remove" data-action="remove-env" data-index="${idx}" title="Remove">🗑️</button>
-            </td>
+            <input type="text" id="env-key-${idx}" value="${this.escape(key)}" placeholder="NAME">
+            <input type="text" id="env-value-${idx}" value="${this.escape(displayValue)}" placeholder="value">
+            <button type="button" class="icon-btn danger" data-action="remove-env" data-index="${idx}" title="Remove">✕</button>
         `;
-        tbody.appendChild(row);
+        list.appendChild(row);
 
         row.querySelectorAll('input').forEach(input => {
             input.addEventListener('input', () => ConfigPreview.update());
@@ -195,16 +190,12 @@ const EnvTable = {
     },
 
     removeRow(index) {
-        const row = DOM.getById(`env-key-${index}`)?.closest('tr');
+        const row = DOM.getById(`env-key-${index}`)?.closest('.env-row');
         if (row) {
             row.remove();
-            const tbody = DOM.getById('envTableBody');
-            if (tbody && tbody.children.length === 0) {
-                tbody.innerHTML = `<tr id="emptyEnvRow">
-                    <td colspan="3" style="text-align: center; opacity: 0.6; padding: 20px;">
-                        No environment variables configured. Click "Add Variable" to get started.
-                    </td>
-                </tr>`;
+            const list = DOM.getById('envList');
+            if (list && list.children.length === 0) {
+                list.innerHTML = `<div class="env-empty" id="emptyEnvRow">No environment variables — click Add to get started.</div>`;
             }
             ConfigPreview.update();
         }
@@ -252,15 +243,15 @@ const Properties = {
 
         const isArray = this.isArrayProperty(key);
         const fieldDiv = document.createElement('div');
-        fieldDiv.className = `field-group${isArray ? ' array-field' : ''}`;
+        fieldDiv.className = 'prop-row';
         fieldDiv.setAttribute('data-property', key);
 
         fieldDiv.innerHTML = `
-            <label for="prop-${key}">${key}${isArray ? '<span class="array-badge">Array</span>' : ''}</label>
-            <div class="field-content">
+            <label for="prop-${key}">${key}${isArray ? '<span class="array-badge">array</span>' : ''}</label>
+            <div class="field-control">
                 ${isArray ? this.createArrayInput(key, value) : this.createTextInput(key, value)}
-                <button type="button" class="remove-btn" data-action="remove-property" data-key="${key}">🗑️</button>
             </div>
+            <button type="button" class="icon-btn danger" data-action="remove-property" data-key="${key}" title="Remove">✕</button>
         `;
 
         container.appendChild(fieldDiv);
@@ -306,7 +297,7 @@ const Properties = {
     },
 
     removeField(key) {
-        const field = DOM.getById(`prop-${key}`)?.closest('.field-group');
+        const field = DOM.getById(`prop-${key}`)?.closest('.prop-row');
         if (field) {
             field.remove();
             ConfigPreview.update();
@@ -360,44 +351,53 @@ const FormConfig = {
         const form = DOM.getById('configForm');
         if (!form) return config;
 
-        // Basic fields
-        const basicFields = ['name', 'type', 'request'];
-        basicFields.forEach(field => {
-            const value = DOM.getValue(`config${field.charAt(0).toUpperCase() + field.slice(1)}`);
-            if (value) config[field] = value;
-        });
+        // name
+        const name = DOM.getValue('configName');
+        if (name) config.name = name;
 
-        // Special fields
+        // type: select-or-custom
+        const typeSelect = DOM.getById('configTypeSelect');
+        if (typeSelect && typeSelect.value === '__custom__') {
+            const custom = DOM.getValue('configType');
+            if (custom) config.type = custom;
+        } else if (typeSelect && typeSelect.value) {
+            config.type = typeSelect.value;
+        }
+
+        // request: segmented control
+        const reqRadio = document.querySelector('input[name="request"]:checked');
+        if (reqRadio && reqRadio.value) config.request = reqRadio.value;
+
+        // Optional text fields
         this.addIfPresent(config, 'program', DOM.getValue('configProgram'));
         this.addIfPresent(config, 'mode', DOM.getValue('configMode'));
         this.addIfPresent(config, 'module', DOM.getValue('configModule'));
         this.addIfPresent(config, 'cwd', DOM.getValue('configCwd'));
 
-        // justMyCode as boolean
-        const justMyCode = DOM.getValue('configJustMyCode').toLowerCase();
-        if (justMyCode) {
-            config.justMyCode = justMyCode === 'true' ? true : justMyCode === 'false' ? false : justMyCode;
+        // justMyCode: segmented control
+        const jmcRadio = document.querySelector('input[name="justMyCode"]:checked');
+        if (jmcRadio && jmcRadio.value !== '') {
+            config.justMyCode = jmcRadio.value === 'true';
         }
 
         // Args array
         const args = ArrayField.getValue('args');
         if (args.length > 0) config.args = args;
 
-        // Console and tasks
-        this.addIfPresent(config, 'console', DOM.getValue('configConsole'));
-        this.addIfPresent(config, 'internalConsoleOptions', DOM.getValue('configInternalConsole'));
-        this.addIfPresent(config, 'preLaunchTask', DOM.getValue('configPreLaunchTask'));
-        this.addIfPresent(config, 'postDebugTask', DOM.getValue('configPostDebugTask'));
+        // select-or-custom fields
+        this.addSelectOrCustom(config, 'console', 'configConsoleSelect', 'configConsole');
+        this.addSelectOrCustom(config, 'internalConsoleOptions', 'configInternalConsoleSelect', 'configInternalConsole');
+        this.addSelectOrCustom(config, 'preLaunchTask', 'configPreLaunchTaskSelect', 'configPreLaunchTask');
+        this.addSelectOrCustom(config, 'postDebugTask', 'configPostDebugTaskSelect', 'configPostDebugTask');
 
         // Environment
         const env = EnvTable.getObject();
         if (Object.keys(env).length > 0) config.env = env;
-
         const envFile = DOM.getValue('envFile');
         if (envFile) config.envFile = envFile;
 
         // Custom properties
-        DOM.$$('#propertiesContainer .field-group').forEach(field => {
+        DOM.$$('#propertiesContainer .prop-row').forEach(field => {
             const key = field.getAttribute('data-property');
             if (key && !Properties.skippedFields.includes(key)) {
                 if (Properties.isArrayProperty(key)) {
@@ -414,6 +414,17 @@ const FormConfig = {
         });
 
         return config;
+    },
+
+    addSelectOrCustom(obj, key, selectId, inputId) {
+        const select = DOM.getById(selectId);
+        if (!select) return;
+        if (select.value === '__custom__') {
+            const val = DOM.getValue(inputId);
+            if (val) obj[key] = val;
+        } else if (select.value) {
+            obj[key] = select.value;
+        }
     },
 
     addIfPresent(obj, key, value) {
@@ -603,39 +614,53 @@ const Page = {
         state.initialConfig = JSON.stringify(data.config, null, 2);
         state.commonTypes = data.commonTypes || [];
 
-        // Set basic fields
+        // Update header title
+        const headerTitle = DOM.getById('headerTitle');
+        if (headerTitle && data.config.name) headerTitle.textContent = data.config.name;
+
+        // Set basic text fields
         DOM.setValue('configName', data.config.name || '');
         DOM.setValue('configType', data.config.type || '');
-        DOM.setValue('configRequest', data.config.request || '');
         DOM.setValue('configProgram', data.config.program || '');
         DOM.setValue('configMode', data.config.mode || '');
         DOM.setValue('configModule', data.config.module || '');
         DOM.setValue('configCwd', data.config.cwd || '');
-        DOM.setValue('configJustMyCode', data.config.justMyCode !== undefined ? String(data.config.justMyCode) : '');
 
         // Python path field
         const pythonPathField = DOM.getById('pythonPathField');
         if (pythonPathField) {
-            pythonPathField.style.display = data.config.type === 'python' ? 'flex' : 'none';
+            pythonPathField.style.display = (data.config.type === 'python' || data.config.type === 'debugpy') ? 'grid' : 'none';
         }
 
-        // Set dropdowns
-        this.setDropdownValue('configJustMyCodeSelect', data.config.justMyCode);
-        this.setDropdownValue('configRequestSelect', data.config.request);
-        this.setDropdownValue('configConsoleSelect', data.config.console);
-        this.setDropdownValue('configInternalConsoleSelect', data.config.internalConsoleOptions);
+        // Type select-or-custom
+        this.populateTypeDropdown(data.config.type);
 
-        // Console and tasks
-        DOM.setValue('configConsole', data.config.console || '');
-        DOM.setValue('configInternalConsole', data.config.internalConsoleOptions || '');
-        DOM.setValue('configPreLaunchTask', data.config.preLaunchTask || '');
-        DOM.setValue('configPostDebugTask', data.config.postDebugTask || '');
+        // Request segmented control
+        const reqVal = data.config.request || 'launch';
+        const reqRadio = document.querySelector(`input[name="request"][value="${reqVal}"]`);
+        if (reqRadio) reqRadio.checked = true;
+        DOM.setValue('configRequest', reqVal);
+
+        // justMyCode segmented control
+        const jmcVal = data.config.justMyCode !== undefined ? String(data.config.justMyCode) : '';
+        const jmcRadio = document.querySelector(`input[name="justMyCode"][value="${jmcVal}"]`);
+        if (jmcRadio) jmcRadio.checked = true;
+        DOM.setValue('configJustMyCode', jmcVal);
+
+        // Console select-or-custom
+        this.initSelectOrCustom('configConsoleSelect', 'configConsole', 'customConsoleRow', data.config.console);
+
+        // internalConsoleOptions select-or-custom
+        this.initSelectOrCustom('configInternalConsoleSelect', 'configInternalConsole', 'customInternalConsoleRow', data.config.internalConsoleOptions);
+
+        // preLaunchTask select-or-custom
+        this.initSelectOrCustom('configPreLaunchTaskSelect', 'configPreLaunchTask', 'customPreLaunchTaskRow', data.config.preLaunchTask);
+
+        // postDebugTask select-or-custom
+        this.initSelectOrCustom('configPostDebugTaskSelect', 'configPostDebugTask', 'customPostDebugTaskRow', data.config.postDebugTask);
 
         // Args
         this.initializeArgs(data.config.args || []);
-
-        // Type dropdown
-        this.populateTypeDropdown(data.config.type);
 
         // Environment
         EnvTable.populate(data.config.env || {});
@@ -646,6 +671,30 @@ const Page = {
 
         // Update preview
         setTimeout(() => ConfigPreview.update(), 100);
+    },
+
+    // Initialize a select-or-custom field: if value matches an option use select,
+    // otherwise show custom input row
+    initSelectOrCustom(selectId, inputId, customRowId, value) {
+        const select = DOM.getById(selectId);
+        const input = DOM.getById(inputId);
+        const row = DOM.getById(customRowId);
+        if (!select) return;
+
+        const strVal = value !== undefined && value !== null ? String(value) : '';
+        const hasOption = strVal && Array.from(select.options).some(o => o.value === strVal && o.value !== '__custom__');
+
+        if (hasOption) {
+            select.value = strVal;
+            if (row) row.classList.remove('visible');
+        } else if (strVal) {
+            select.value = '__custom__';
+            if (input) input.value = strVal;
+            if (row) row.classList.add('visible');
+        } else {
+            select.value = '';
+            if (row) row.classList.remove('visible');
+        }
     },
 
     initializeArgs(argsValue) {
@@ -668,19 +717,40 @@ const Page = {
         const select = DOM.getById('configTypeSelect');
         if (!select) return;
 
-        const descriptions = {
-            'python': 'Python - Python debugging (Well supported)',
-            'go': 'Go - Go language debugging (Well supported)'
+        const knownLabels = {
+            'node': 'Node.js', 'node2': 'Node.js (legacy)',
+            'python': 'Python', 'debugpy': 'Python (debugpy)',
+            'go': 'Go', 'chrome': 'Chrome', 'msedge': 'Edge',
+            'firefox': 'Firefox', 'extensionHost': 'VS Code Extension Host',
+            'coreclr': 'CoreCLR (.NET)', 'java': 'Java'
         };
 
-        select.innerHTML = '<option value="">Select preset...</option>';
+        select.innerHTML = '<option value="">Select type…</option>';
         state.commonTypes.forEach(type => {
             const option = document.createElement('option');
             option.value = type;
-            option.textContent = descriptions[type] || type;
-            option.selected = type === currentType;
+            option.textContent = knownLabels[type] || type;
             select.appendChild(option);
         });
+
+        const customOpt = document.createElement('option');
+        customOpt.value = '__custom__';
+        customOpt.textContent = 'Custom…';
+        select.appendChild(customOpt);
+
+        // Determine if current type matches a known option
+        const customTypeRow = DOM.getById('customTypeRow');
+        const typeInput = DOM.getById('configType');
+        const hasOption = currentType && Array.from(select.options).some(o => o.value === currentType && o.value !== '__custom__');
+
+        if (hasOption) {
+            select.value = currentType;
+            if (customTypeRow) customTypeRow.classList.remove('visible');
+        } else if (currentType) {
+            select.value = '__custom__';
+            if (typeInput) typeInput.value = currentType;
+            if (customTypeRow) customTypeRow.classList.add('visible');
+        }
     },
 
     setDropdownValue(id, value) {
@@ -739,7 +809,51 @@ if (document.readyState === 'loading') {
     Page.init();
 }
 
-// Expose for inline handlers (to be removed after full migration)
+// Expose for inline handlers
 window.toggleHelp = (e, field) => HelpPopup.toggle(e, field);
 window.setArrayMode = (prop, mode) => ArrayField.setMode(prop, mode);
 window.updateJsonPreviewFromList = (prop) => ConfigPreview.update();
+
+// Select-or-custom handler
+window.handleSelectOrCustom = (selectEl, inputId) => {
+    const rowId = 'custom' + inputId.charAt(6).toUpperCase() + inputId.slice(7) + 'Row';
+    const row = document.getElementById(rowId);
+    if (selectEl.value === '__custom__') {
+        if (row) row.classList.add('visible');
+        const input = document.getElementById(inputId);
+        if (input) input.focus();
+    } else {
+        if (row) row.classList.remove('visible');
+    }
+    ConfigPreview.update();
+};
+
+// Type select handler
+window.handleTypeSelect = (selectEl) => {
+    const row = document.getElementById('customTypeRow');
+    if (selectEl.value === '__custom__') {
+        if (row) row.classList.add('visible');
+        const input = document.getElementById('configType');
+        if (input) input.focus();
+    } else {
+        if (row) row.classList.remove('visible');
+    }
+    ConfigPreview.update();
+};
+
+// Segmented controls update preview on change
+document.addEventListener('change', (e) => {
+    if (e.target.name === 'request' || e.target.name === 'justMyCode') {
+        ConfigPreview.update();
+    }
+});
+
+// JSON preview collapsible
+window.toggleJsonPreview = () => {
+    const btn = document.getElementById('jsonToggleBtn');
+    const view = document.getElementById('jsonPreview');
+    if (!btn || !view) return;
+    const isOpen = btn.classList.toggle('open');
+    view.classList.toggle('visible', isOpen);
+    if (isOpen) ConfigPreview.update();
+};
