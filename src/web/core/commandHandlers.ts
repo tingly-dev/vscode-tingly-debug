@@ -27,7 +27,7 @@ export function registerCommandHandlers(
 
             if (!symbol) {
                 // Try to show symbol selector
-                symbol = await showSymbolSelector();
+                symbol = await showSymbolSelector(outputChannel);
                 if (!symbol) {
                     return;
                 }
@@ -766,7 +766,7 @@ export function registerCommandHandlers(
 /**
  * Show symbol selector when no symbol is selected
  */
-async function showSymbolSelector(): Promise<SymbolInfo | null> {
+async function showSymbolSelector(outputChannel: vscode.OutputChannel): Promise<SymbolInfo | null> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
         vscode.window.showWarningMessage('No active editor found.');
