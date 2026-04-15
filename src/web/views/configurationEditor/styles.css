@@ -125,7 +125,7 @@ body {
 /* ─── Field rows ────────────────────────────────────────────── */
 .field-row {
     display: grid;
-    grid-template-columns: 160px 1fr;
+    grid-template-columns: 180px 1fr;
     align-items: start;
     gap: 6px 12px;
     margin-bottom: 10px;
@@ -344,7 +344,7 @@ input[readonly] {
 
 .env-file-row {
     display: grid;
-    grid-template-columns: 160px 1fr auto;
+    grid-template-columns: 180px 1fr auto;
     gap: 6px 12px;
     align-items: center;
     margin-bottom: 10px;
@@ -409,7 +409,7 @@ input[readonly] {
 
 .prop-row {
     display: grid;
-    grid-template-columns: 160px 1fr auto;
+    grid-template-columns: 180px 1fr auto;
     gap: 8px 12px;
     align-items: start;
 }
@@ -424,7 +424,7 @@ input[readonly] {
 
 .add-prop-row {
     display: grid;
-    grid-template-columns: 160px 1fr auto;
+    grid-template-columns: 180px 1fr auto;
     gap: 8px 12px;
     align-items: center;
     margin-top: 8px;
