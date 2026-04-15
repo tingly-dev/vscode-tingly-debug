@@ -42,7 +42,7 @@
                 <div class="field-row">
                     <label for="configName">
                         <code>name</code>
-                        <span class="help-icon" onclick="toggleHelp(event, 'name')">ⓘ
+                        <span class="help-icon" onmouseenter="showHelp(event, 'name')" onmouseleave="hideHelp('name')">ⓘ
                             <div class="help-popup" id="help-name">Reader-friendly name shown in the Debug launch configuration dropdown. Should be descriptive and unique.</div>
                         </span>
                     </label>
@@ -55,7 +55,7 @@
                 <div class="field-row">
                     <label for="configType">
                         <code>type</code>
-                        <span class="help-icon" onclick="toggleHelp(event, 'type')">ⓘ
+                        <span class="help-icon" onmouseenter="showHelp(event, 'type')" onmouseleave="hideHelp('type')">ⓘ
                             <div class="help-popup" id="help-type">The debugger type. Every installed debug extension introduces a type (e.g. node, python, go, chrome).</div>
                         </span>
                     </label>
@@ -75,7 +75,7 @@
                 <div class="field-row">
                     <label>
                         <code>request</code>
-                        <span class="help-icon" onclick="toggleHelp(event, 'request')">ⓘ
+                        <span class="help-icon" onmouseenter="showHelp(event, 'request')" onmouseleave="hideHelp('request')">ⓘ
                             <div class="help-popup" id="help-request">launch starts a new process; attach connects to a running process.</div>
                         </span>
                     </label>
@@ -95,7 +95,7 @@
                 <div class="field-row">
                     <label for="configProgram">
                         <code>program</code>
-                        <span class="help-icon" onclick="toggleHelp(event, 'program')">ⓘ
+                        <span class="help-icon" onmouseenter="showHelp(event, 'program')" onmouseleave="hideHelp('program')">ⓘ
                             <div class="help-popup" id="help-program">Executable or script to run. Supports VS Code variables like ${workspaceFolder}, ${file}.</div>
                         </span>
                     </label>
@@ -111,7 +111,7 @@
                 <div class="field-row">
                     <label>
                         <code>args</code>
-                        <span class="help-icon" onclick="toggleHelp(event, 'args')">ⓘ
+                        <span class="help-icon" onmouseenter="showHelp(event, 'args')" onmouseleave="hideHelp('args')">ⓘ
                             <div class="help-popup" id="help-args">Command line arguments. List mode: one argument per line. JSON mode: enter as a JSON array.</div>
                         </span>
                     </label>
@@ -133,7 +133,7 @@
                 <div class="field-row">
                     <label for="configCwd">
                         <code>cwd</code>
-                        <span class="help-icon" onclick="toggleHelp(event, 'cwd')">ⓘ
+                        <span class="help-icon" onmouseenter="showHelp(event, 'cwd')" onmouseleave="hideHelp('cwd')">ⓘ
                             <div class="help-popup" id="help-cwd">Working directory for the debug session. Defaults to ${workspaceFolder}.</div>
                         </span>
                     </label>
@@ -149,7 +149,7 @@
                 <div class="field-row">
                     <label for="configMode">
                         <code>mode</code>
-                        <span class="help-icon" onclick="toggleHelp(event, 'mode')">ⓘ
+                        <span class="help-icon" onmouseenter="showHelp(event, 'mode')" onmouseleave="hideHelp('mode')">ⓘ
                             <div class="help-popup" id="help-mode">Debug mode string — check your debugger's docs for valid values.</div>
                         </span>
                     </label>
@@ -162,7 +162,7 @@
                 <div class="field-row">
                     <label for="configModule">
                         <code>module</code>
-                        <span class="help-icon" onclick="toggleHelp(event, 'module')">ⓘ
+                        <span class="help-icon" onmouseenter="showHelp(event, 'module')" onmouseleave="hideHelp('module')">ⓘ
                             <div class="help-popup" id="help-module">Module path or name to debug (used by some debuggers).</div>
                         </span>
                     </label>
@@ -175,7 +175,7 @@
                 <div class="field-row">
                     <label>
                         <code>justMyCode</code>
-                        <span class="help-icon" onclick="toggleHelp(event, 'justMyCode')">ⓘ
+                        <span class="help-icon" onmouseenter="showHelp(event, 'justMyCode')" onmouseleave="hideHelp('justMyCode')">ⓘ
                             <div class="help-popup" id="help-justMyCode">When enabled, only debug user-written code and skip system/library code.</div>
                         </span>
                     </label>
@@ -209,7 +209,7 @@
                 <div class="section-header">
                     <span class="section-title">
                         Environment
-                        <span class="help-icon" onclick="toggleHelp(event, 'environment')" style="margin-left:6px;">ⓘ
+                        <span class="help-icon" onmouseenter="showHelp(event, 'environment')" onmouseleave="hideHelp('environment')" style="margin-left:6px;">ⓘ
                             <div class="help-popup" id="help-environment">Set environment variables for the debug session, or load them from a .env file.</div>
                         </span>
                     </span>
@@ -241,7 +241,7 @@
                 <div class="field-row">
                     <label>
                         <code>console</code>
-                        <span class="help-icon" onclick="toggleHelp(event, 'console')">ⓘ
+                        <span class="help-icon" onmouseenter="showHelp(event, 'console')" onmouseleave="hideHelp('console')">ⓘ
                             <div class="help-popup" id="help-console">internalConsole = VS Code Debug Console; integratedTerminal = VS Code terminal; externalTerminal = system terminal.</div>
                         </span>
                     </label>
@@ -265,7 +265,7 @@
                 <div class="field-row">
                     <label>
                         <code>internalConsoleOptions</code>
-                        <span class="help-icon" onclick="toggleHelp(event, 'internalConsole')">ⓘ
+                        <span class="help-icon" onmouseenter="showHelp(event, 'internalConsole')" onmouseleave="hideHelp('internalConsole')">ⓘ
                             <div class="help-popup" id="help-internalConsole">Controls when the Debug Console panel opens: neverOpen, openOnSessionStart, or openOnFirstSessionStart.</div>
                         </span>
                     </label>
@@ -289,7 +289,7 @@
                 <div class="field-row">
                     <label for="configPreLaunchTask">
                         <code>preLaunchTask</code>
-                        <span class="help-icon" onclick="toggleHelp(event, 'preLaunchTask')">ⓘ
+                        <span class="help-icon" onmouseenter="showHelp(event, 'preLaunchTask')" onmouseleave="hideHelp('preLaunchTask')">ⓘ
                             <div class="help-popup" id="help-preLaunchTask">Task to run before the debug session starts. Use the task label from tasks.json.</div>
                         </span>
                     </label>
@@ -314,7 +314,7 @@
                 <div class="field-row">
                     <label for="configPostDebugTask">
                         <code>postDebugTask</code>
-                        <span class="help-icon" onclick="toggleHelp(event, 'postDebugTask')">ⓘ
+                        <span class="help-icon" onmouseenter="showHelp(event, 'postDebugTask')" onmouseleave="hideHelp('postDebugTask')">ⓘ
                             <div class="help-popup" id="help-postDebugTask">Task to run when the debug session ends. Use the task label from tasks.json.</div>
                         </span>
                     </label>
@@ -341,7 +341,7 @@
                 <div class="section-header">
                     <span class="section-title">
                         Extra Properties
-                        <span class="help-icon" onclick="toggleHelp(event, 'properties')" style="margin-left:6px;">ⓘ
+                        <span class="help-icon" onmouseenter="showHelp(event, 'properties')" onmouseleave="hideHelp('properties')" style="margin-left:6px;">ⓘ
                             <div class="help-popup" id="help-properties">Additional debugger-specific properties not listed above.</div>
                         </span>
                     </span>

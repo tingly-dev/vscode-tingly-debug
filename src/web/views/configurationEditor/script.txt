@@ -504,7 +504,7 @@ const Page = {
         // Event delegation for dynamic content
         document.addEventListener('click', this.handleClick.bind(this));
 
-        // Help popup close on outside click
+        // Help popup close on outside click (fallback)
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.help-icon')) HelpPopup.hideAll();
         });
@@ -810,6 +810,8 @@ if (document.readyState === 'loading') {
 }
 
 // Expose for inline handlers
+window.showHelp = (e, field) => HelpPopup.show(e, field);
+window.hideHelp = (field) => HelpPopup.hide(field);
 window.toggleHelp = (e, field) => HelpPopup.toggle(e, field);
 window.setArrayMode = (prop, mode) => ArrayField.setMode(prop, mode);
 window.updateJsonPreviewFromList = (prop) => ConfigPreview.update();
