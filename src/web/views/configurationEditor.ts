@@ -4,7 +4,9 @@ import htmlTemplate from './configurationEditor/index.html';
 import cssStyles from './configurationEditor/styles.css';
 import jsScript from './configurationEditor/script.txt';
 import { DebugConfigurationProvider } from './debugPanel';
+import { createModuleLogger } from '../util/logger';
 
+const log = createModuleLogger('ConfigurationEditor');
 
 export class ConfigurationEditor {
     private static openPanels = new Map<string, vscode.WebviewPanel>();
@@ -38,12 +40,12 @@ export class ConfigurationEditor {
         }
 
         try {
-            console.log(`Refreshing tab for "${configName}"`);
+            log.debug(`Refreshing tab for "${configName}"`);
 
             // Get latest configuration from provider
             const targetConfig = await this.getConfigurationFromProvider(configName, provider);
             if (!targetConfig) {
-                console.error(`Configuration "${configName}" not found for refresh`);
+                log.error(`Configuration "${configName}" not found for refresh`);
                 return;
             }
 
@@ -73,6 +75,9 @@ export class ConfigurationEditor {
                             program: configData.properties.program,
                             mode: configData.properties.mode,
                             args: configData.properties.args,
+                            module: configData.properties.module,
+                            cwd: configData.properties.cwd,
+                            justMyCode: configData.properties.justMyCode,
                             console: configData.properties.console,
                             internalConsoleOptions: configData.properties.internalConsoleOptions,
                             preLaunchTask: configData.properties.preLaunchTask,
@@ -90,9 +95,6 @@ export class ConfigurationEditor {
                                 delete result.program;
                                 delete result.mode;
                                 delete result.args;
-                                delete result.module;
-                                delete result.cwd;
-                                delete result.justMyCode;
                                 delete result.pythonPath;
                                 return result;
                             })()
@@ -109,7 +111,7 @@ export class ConfigurationEditor {
             }, 100);
 
         } catch (error) {
-            console.error(`Error refreshing tab "${configName}":`, error);
+            log.error(`Error refreshing tab "${configName}":`, error);
             vscode.window.showErrorMessage(`Failed to refresh configuration "${configName}": ${error}`);
         }
     }
@@ -124,7 +126,7 @@ export class ConfigurationEditor {
         if (panel) {
             panel.dispose();
             ConfigurationEditor.openPanels.delete(panelId);
-            console.log(`Closed tab for "${configName}"`);
+            log.debug(`Closed tab for "${configName}"`);
         }
     }
 
@@ -133,20 +135,20 @@ export class ConfigurationEditor {
      */
     private static async getConfigurationFromProvider(configName: string, provider: DebugConfigurationProvider): Promise<LaunchConfiguration | null> {
         try {
-            console.log(`Getting configuration "${configName}" from provider`);
+            log.debug(`Getting configuration "${configName}" from provider`);
             const configurations = await provider.readConfigurationsOnly();
 
             if (!configurations || !Array.isArray(configurations)) {
-                console.error('Invalid configurations returned from provider');
+                log.error('Invalid configurations returned from provider');
                 return null;
             }
 
-            console.log(`Available configurations:`, configurations.map(c => c?.name || 'undefined'));
+            log.debug(`Available configurations:`, configurations.map(c => c?.name || 'undefined'));
             const foundConfig = configurations.find(config => config && config.name === configName);
-            console.log(`Found configuration:`, foundConfig);
+            log.debug(`Found configuration:`, foundConfig);
             return foundConfig || null;
         } catch (error) {
-            console.error('Error reading configuration from provider:', error);
+            log.error('Error reading configuration from provider:', error);
             return null;
         }
     }
@@ -171,12 +173,12 @@ export class ConfigurationEditor {
         };
         const panelId = `debugConfigSettings_${launchConfig.name}`;
 
-        console.log(`Opening configuration editor tab for "${launchConfig.name}"`);
+        log.debug(`Opening configuration editor tab for "${launchConfig.name}"`);
 
         // Check if this specific tab is already open
         if (ConfigurationEditor.isTabOpen(launchConfig.name)) {
             // Tab already exists, just focus it
-            console.log('Tab already open, focusing existing tab');
+            log.debug('Tab already open, focusing existing tab');
             const existingPanel = ConfigurationEditor.openPanels.get(panelId);
             if (existingPanel) {
                 existingPanel.reveal();
@@ -409,7 +411,7 @@ export class ConfigurationEditor {
                                 // Update panel title
                                 panel.title = `Configuration Settings: ${newName}`;
 
-                                console.log(`Configuration renamed from "${oldName}" to "${newName}"`);
+                                log.debug(`Configuration renamed from "${oldName}" to "${newName}"`);
                             }
 
                             // Send success message to update UI state
@@ -448,7 +450,7 @@ export class ConfigurationEditor {
                             try {
                                 currentConfig = JSON.parse(message.currentConfig);
                             } catch (parseError) {
-                                console.error('Error parsing current config:', parseError);
+                                log.error('Error parsing current config:', parseError);
                                 panel.webview.postMessage({
                                     command: 'showError',
                                     message: 'Invalid JSON in current configuration'
@@ -459,7 +461,7 @@ export class ConfigurationEditor {
                             try {
                                 initialConfig = JSON.parse(message.initialConfig);
                             } catch (parseError) {
-                                console.error('Error parsing initial config:', parseError);
+                                log.error('Error parsing initial config:', parseError);
                                 // Continue with comparison even if initial config can't be parsed
                                 initialConfig = {};
                             }
@@ -472,7 +474,7 @@ export class ConfigurationEditor {
                                 currentConfig: message.currentConfig
                             });
                         } catch (error) {
-                            console.error('Error checking unsaved changes:', error);
+                            log.error('Error checking unsaved changes:', error);
                             panel.webview.postMessage({
                                 command: 'showError',
                                 message: 'Failed to check for unsaved changes'
@@ -523,7 +525,7 @@ export class ConfigurationEditor {
                                 data: webviewData
                             });
                         } catch (error) {
-                            console.error('Error initializing webview:', error);
+                            log.error('Error initializing webview:', error);
                             panel.webview.postMessage({
                                 command: 'showError',
                                 message: `Failed to initialize configuration editor: ${error}`
@@ -743,7 +745,7 @@ API_URL=http://localhost:3000
         try {
             return JSON.stringify(arr);
         } catch (error) {
-            console.error('Error array to string conversion:', error);
+            log.error('Error array to string conversion:', error);
             return '[]';
         }
     }
