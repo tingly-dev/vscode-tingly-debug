@@ -4,6 +4,25 @@ All notable changes to the "Tingly Debug" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.260415.0] - 2026-04-15
+
+### Added
+- ✅ Redesigned configuration panel UI with VS Code native look and feel
+- ✅ Python environment resolver support
+
+### Changed
+- ✅ Changed help tooltips from click to hover (onmouseenter/onmouseleave)
+- ✅ New webview panel implementation
+- ✅ Code clean and optimization
+
+### Fixed
+- ✅ Fixed label column width (160px → 180px) to prevent Session field overlap
+- ✅ Fixed help tooltips being clipped by overflow:hidden on label
+- ✅ Fixed watch-web task problem matcher so F5 no longer prompts for pre-launch task
+- ✅ Fixed outputChannel parameter passing to showSymbolSelector
+- ✅ Fixed 8 debug config issues found in code review
+- ✅ Fixed name change breaking config panel
+
 ## [0.260129.1930] - 2026-01-29
 ### Changed
 - bugfix: fail when .vscode or launch.json not exist.
