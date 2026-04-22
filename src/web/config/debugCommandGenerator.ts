@@ -36,7 +36,7 @@ export class SymbolDetector {
     /**
      * Get the symbol path for the selected text or cursor position
      */
-    static async getSelectedSymbolPath(): Promise<SymbolInfo | null> {
+    static async getSelectedSymbolPath(outputChannel?: vscode.OutputChannel): Promise<SymbolInfo | null> {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
             return null;
@@ -80,19 +80,19 @@ export class SymbolDetector {
 
             if (result === showDetails) {
                 // Show detailed error information in output channel
-                const outputChannel = vscode.window.createOutputChannel('Tingly Debug Errors');
-                outputChannel.appendLine('=== Symbol Provider Error Details ===');
-                outputChannel.appendLine(`Timestamp: ${new Date().toISOString()}`);
-                outputChannel.appendLine(`Error: ${errorMessage}`);
+                const channel = outputChannel ?? vscode.window.createOutputChannel('Tingly Debug Errors');
+                channel.appendLine('=== Symbol Provider Error Details ===');
+                channel.appendLine(`Timestamp: ${new Date().toISOString()}`);
+                channel.appendLine(`Error: ${errorMessage}`);
                 if (errorStack) {
-                    outputChannel.appendLine(`Stack Trace:\n${errorStack}`);
+                    channel.appendLine(`Stack Trace:\n${errorStack}`);
                 }
-                outputChannel.appendLine(`Document URI: ${documentInfo.uri}`);
-                outputChannel.appendLine(`Document Path: ${documentInfo.fsPath}`);
-                outputChannel.appendLine(`Language: ${documentInfo.language}`);
-                outputChannel.appendLine(`VSCode Version: ${vscode.version}`);
-                outputChannel.appendLine('=====================================');
-                outputChannel.show();
+                channel.appendLine(`Document URI: ${documentInfo.uri}`);
+                channel.appendLine(`Document Path: ${documentInfo.fsPath}`);
+                channel.appendLine(`Language: ${documentInfo.language}`);
+                channel.appendLine(`VSCode Version: ${vscode.version}`);
+                channel.appendLine('=====================================');
+                channel.show();
             }
 
             return null;
