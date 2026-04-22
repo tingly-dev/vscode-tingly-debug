@@ -29,6 +29,10 @@ export class LanguageModuleRegistry {
         this.register(pythonModule);
         this.register(golangModule);
         this.register(javascriptModule);
+        // TypeScript files report languageId='typescript' in VS Code; alias the JS module for them
+        this.modules.set('typescript', javascriptModule);
+        this.modules.set('typescriptreact', javascriptModule);
+        this.modules.set('javascriptreact', javascriptModule);
     }
 
     public register(module: LanguageModule): void {
@@ -132,9 +136,21 @@ export class LanguageModuleRegistry {
     }
 
     public validateSetup(language: string): Promise<boolean> {
-        // TODO: Implement setup validation logic
-        // Check if required tools and extensions are installed
-        return Promise.resolve(true);
+        const extensionRequirements: Record<string, string[]> = {
+            python: ['ms-python.python'],
+            go: ['golang.go'],
+        };
+
+        const required = extensionRequirements[language.toLowerCase()];
+        if (!required) {
+            return Promise.resolve(true);
+        }
+
+        const missing = required.filter(id => !vscode.extensions.getExtension(id));
+        if (missing.length > 0) {
+            log.warn(`Missing required extensions for ${language}: ${missing.join(', ')}`);
+        }
+        return Promise.resolve(missing.length === 0);
     }
 
     public getFrameworkInfo(language: string): { name: string; priority: number }[] {
