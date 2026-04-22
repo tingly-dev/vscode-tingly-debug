@@ -207,18 +207,19 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
 
     public async getConfigurations(): Promise<DebugConfigurationItem[] | DebugErrorItem[]> {
         try {
-            const configurations = await this.readConfigurationsOnly();
+            const launchJson = await this.readLaunchJson();
             const config = vscode.workspace.getConfiguration('tingly.debug');
             const clickBehavior = config.get<ClickBehavior>('clickBehavior', 'openSettings');
 
-            log.debug(`DebugConfigurationProvider: read ${configurations.length} configurations, clickBehavior=${clickBehavior}`);
+            const configurations = launchJson.configurations || [];
+            const compounds = launchJson.compounds || [];
 
-            const items: DebugConfigurationItem[] = [];
+            log.debug(`DebugConfigurationProvider: read ${configurations.length} configurations, ${compounds.length} compounds, clickBehavior=${clickBehavior}`);
 
-            // Add configurations only
-            for (const config of configurations) {
-                items.push(new DebugConfigurationItem(config, vscode.TreeItemCollapsibleState.None, clickBehavior));
-            }
+            const items: DebugConfigurationItem[] = [
+                ...configurations.map(c => new DebugConfigurationItem(c, vscode.TreeItemCollapsibleState.None, clickBehavior)),
+                ...compounds.map(c => new DebugConfigurationItem(c, vscode.TreeItemCollapsibleState.None, clickBehavior)),
+            ];
 
             log.debug(`DebugConfigurationProvider: created ${items.length} DebugConfigurationItems`);
             return items;

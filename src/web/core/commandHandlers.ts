@@ -23,7 +23,7 @@ export function registerCommandHandlers(
     async function handleGenerateCommand(commandType: 'run' | 'debug'): Promise<void> {
         try {
             // Get the selected symbol
-            let symbol = await SymbolDetector.getSelectedSymbolPath();
+            let symbol = await SymbolDetector.getSelectedSymbolPath(outputChannel);
 
             if (!symbol) {
                 // Try to show symbol selector
@@ -536,18 +536,19 @@ export function registerCommandHandlers(
     // Run configuration command
     const runCommand = vscode.commands.registerCommand('tingly.debug.debugConfig.run', async (item: DebugConfigurationItem) => {
         try {
-            // Only run configurations, not compounds
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            const workspaceFolder = workspaceFolders?.[0] || undefined;
+
             if ('configurations' in item.config) {
-                vscode.window.showWarningMessage('Cannot run compound configurations directly. Please select an individual configuration.');
+                // Compound: launch by name — VS Code resolves all member configs
+                await vscode.debug.startDebugging(workspaceFolder, item.config.name);
+                vscode.window.showInformationMessage(`Compound "${item.config.name}" launched!`);
                 return;
             }
 
             // Disable all breakpoints for run mode
             await vscode.commands.executeCommand('workbench.debug.viewlet.action.disableAllBreakpoints');
 
-            // Pass the workspace folder to allow VS Code to resolve ${workspaceFolder} variables
-            const workspaceFolders = vscode.workspace.workspaceFolders;
-            const workspaceFolder = workspaceFolders?.[0] || undefined;
             await vscode.debug.startDebugging(workspaceFolder, item.config as LaunchConfiguration);
             vscode.window.showInformationMessage(`Configuration "${item.config.name}" is now running (breakpoints disabled)!`);
         } catch (error) {
@@ -558,18 +559,20 @@ export function registerCommandHandlers(
     // Debug configuration command
     const debugCommand = vscode.commands.registerCommand('tingly.debug.debugConfig.debug', async (item: DebugConfigurationItem) => {
         try {
-            // Only debug configurations, not compounds
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            const workspaceFolder = workspaceFolders?.[0] || undefined;
+
             if ('configurations' in item.config) {
-                vscode.window.showWarningMessage('Cannot debug compound configurations directly. Please select an individual configuration.');
+                // Compound: launch by name with breakpoints enabled
+                await vscode.commands.executeCommand('workbench.debug.viewlet.action.enableAllBreakpoints');
+                await vscode.debug.startDebugging(workspaceFolder, item.config.name);
+                vscode.window.showInformationMessage(`Compound "${item.config.name}" launched (breakpoints enabled)!`);
                 return;
             }
 
             // Enable all breakpoints for debug mode
             await vscode.commands.executeCommand('workbench.debug.viewlet.action.enableAllBreakpoints');
 
-            // Pass the workspace folder to allow VS Code to resolve ${workspaceFolder} variables
-            const workspaceFolders = vscode.workspace.workspaceFolders;
-            const workspaceFolder = workspaceFolders?.[0] || undefined;
             await vscode.debug.startDebugging(workspaceFolder, item.config as LaunchConfiguration);
             vscode.window.showInformationMessage(`Configuration "${item.config.name}" is now debugging (breakpoints enabled)!`);
         } catch (error) {
@@ -611,7 +614,7 @@ export function registerCommandHandlers(
         // Check if there's a symbol at cursor position
         let cursorSymbol: SymbolInfo | null = null;
         try {
-            cursorSymbol = await SymbolDetector.getSelectedSymbolPath();
+            cursorSymbol = await SymbolDetector.getSelectedSymbolPath(outputChannel);
         } catch (error) {
             log.debug('Symbol detection failed:', error);
         }
