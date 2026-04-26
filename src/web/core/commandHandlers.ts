@@ -743,12 +743,6 @@ export function registerCommandHandlers(
         await handleGenerateDirectoryDebugConfig(uri, provider);
     });
 
-
-    // Hello world command
-    const helloWorldCommand = vscode.commands.registerCommand('tingly.debug.helloWorld', () => {
-        vscode.window.showInformationMessage('Hello World from Debug and Run Configurations extension!');
-    });
-
     // Register all disposables
     context.subscriptions.push(
         refreshCommand,
@@ -761,8 +755,7 @@ export function registerCommandHandlers(
         createFromFileCommand,
         openSettingsCommand,
         generateDebugCommandCommand,
-        generateDebugConfigFromDirectoryCommand,
-        helloWorldCommand
+        generateDebugConfigFromDirectoryCommand
     );
 }
 

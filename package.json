@@ -22,10 +22,6 @@
     "contributes": {
         "commands": [
             {
-                "command": "tingly.debug.helloWorld",
-                "title": "Tingly: Hello World"
-            },
-            {
                 "command": "tingly.debug.debugConfig.refresh",
                 "title": "Tingly: Refresh",
                 "icon": "$(refresh)"

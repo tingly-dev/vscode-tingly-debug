@@ -261,19 +261,10 @@ export class DebugConfigurationProvider implements vscode.TreeDataProvider<Debug
     }
 
     public async readLaunchJson(): Promise<LaunchJson> {
-        try {
-            const launchUri = vscode.Uri.file(this.launchJsonPath);
-            const document = await vscode.workspace.openTextDocument(launchUri);
-            const content = document.getText();
-            const data = parseJSONC(content);
-            return data;
-        } catch (error) {
-            // Return default structure if file doesn't exist or is invalid
-            return {
-                version: "0.2.0",
-                configurations: []
-            };
-        }
+        const launchUri = vscode.Uri.file(this.launchJsonPath);
+        const document = await vscode.workspace.openTextDocument(launchUri);
+        const content = document.getText();
+        return parseJSONC(content);
     }
 
     public async readConfigurationsOnly(): Promise<LaunchConfiguration[]> {
