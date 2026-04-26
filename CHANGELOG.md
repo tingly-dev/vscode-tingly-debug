@@ -4,6 +4,22 @@ All notable changes to the "Tingly Debug" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.260426.0] - 2026-04-26
+
+### Fixed
+- fix: preserve comments in launch.json using jsonc-parser
+- fix: TypeScript/JSX language ID aliases in module registry
+- fix: output channel leak in SymbolDetector
+
+### Changed
+- refactor: route console.log through module logger in ConfigurationEditor
+
+### Added
+- feat: enable compound configuration launching
+
+### Test
+- test: add unit tests for jsoncUtils
+
 ## [0.260415.0] - 2026-04-15
 
 ### Added
